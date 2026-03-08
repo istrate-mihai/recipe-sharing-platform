@@ -1,0 +1,45 @@
+<template>
+    <div>
+        <h1>Recipes worth cooking</h1>
+        <p>A minimalistic recipe sharing platform for curious gourmets.</p> 
+    </div>
+
+    <div>
+        <input
+            v-model="recipesStore.search"
+            placeholder="Search recipes..."
+            type="text"
+            class="search-input"
+        />
+
+        <div class="filter-bar">
+            <button
+                @click="recipesStore.activeTag = ''"
+                :class="{ active: recipesStore.activeTag === '' }"
+            >All</button>
+
+            <button
+                v-for="category in recipesStore.categories"
+                :key="category"
+                @click="recipesStore.activeTag = category"
+                :class="{ active: recipesStore.activeTag === category }"
+            >
+                {{ category }}
+            </button>
+        </div>
+
+        <div v-if="recipesStore.filtered.length === 0">
+            No recipes match your search.
+        </div>
+        <div v-else>
+            <RecipeCard v-for="recipe in recipesStore.filtered" :key="recipe.id" :recipe="recipe" />
+        </div>
+    </div>
+</template>
+
+<script setup>
+import { useRecipesStore } from '../stores/recipes';
+import RecipeCard from '../components/RecipeCard.vue';
+
+const recipesStore = useRecipesStore();
+</script>

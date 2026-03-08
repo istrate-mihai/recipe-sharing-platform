@@ -1,0 +1,682 @@
+/* ===== main.css – The Shire Kitchen (Enhanced) ===== */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Open+Sans:wght@400;600&display=swap');
+
+:root {
+  /* Earthy colour palette – deeper, warmer */
+  --bg-page: #2b1b0e;                /* deep roasted coffee */
+  --bg-card: #fef7e9;                 /* old parchment */
+  --wood-light: #b78c5a;              /* aged oak */
+  --wood-dark: #5a3e1b;                /* dark walnut */
+  --accent-terracotta: #b86b3f;        /* fired clay */
+  --accent-herb: #4d7a4d;              /* sage */
+  --accent-gold: #c9a03d;               /* honey */
+  --text-light: #d6b28b;                /* cream */
+  --text-dark: #2c1e0e;                  /* almost black */
+  --border-rustic: #9c7c5b;
+  --shadow-warm: 0 10px 20px rgba(0,0,0,0.5), 0 6px 6px rgba(0,0,0,0.3);
+  --font-serif: 'Playfair Display', serif;
+  --font-sans: 'Open Sans', sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--bg-page);
+  /* layered wood + charcoal texture */
+  background-image: 
+    repeating-linear-gradient(45deg, #3f2e1b22 0px, #3f2e1b22 2px, transparent 2px, transparent 8px),
+    url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 20 L80 20 L80 80 L20 80 Z' fill='none' stroke='%237a5c3a30' stroke-width='2' stroke-dasharray='6 6' /%3E%3C/svg%3E");
+  background-size: 50px 50px, 100px 100px;
+  font-family: var(--font-sans);
+  color: var(--text-light);
+  line-height: 1.6;
+  padding: 0 1rem;
+}
+
+/* ===== Typography ===== */
+h1, h2, h3, h4 {
+  font-family: var(--font-serif);
+  font-weight: 700;
+  color: var(--text-light);
+  letter-spacing: -0.02em;
+  text-shadow: 2px 2px 0 #00000030;
+}
+h1 { font-size: 2.8rem; margin-bottom: 0.5rem; }
+h2 { font-size: 2rem; margin-bottom: 0.5rem; }
+
+a {
+  text-decoration: none;
+  color: var(--accent-gold);
+  transition: color 0.2s, text-shadow 0.2s;
+}
+a:hover {
+  color: var(--accent-terracotta);
+  text-shadow: 0 0 5px #fbc98b;
+  text-decoration: underline wavy var(--accent-herb) 1px;
+}
+
+/* ===== Layout container ===== */
+#app {
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 1.5rem;
+  position: relative;
+}
+
+/* subtle hearth glow at the bottom */
+#app::after {
+  content: '';
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 150px;
+  background: radial-gradient(ellipse at 50% 100%, #f97316 0%, transparent 70%);
+  opacity: 0.15;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ===== AppNav – rustic oak bar ===== */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #6b4f2f; /* base oak */
+  background-image: repeating-linear-gradient(90deg, #8b6b41 0px, #8b6b41 2px, #6b4f2f 2px, #6b4f2f 8px);
+  padding: 1rem 2.5rem;
+  border-radius: 60px 60px 30px 30px;
+  box-shadow: 0 10px 0 #3f2e1b, var(--shadow-warm);
+  border-bottom: 5px solid #3f2e1b;
+  margin-bottom: 2.5rem;
+  position: relative;
+  z-index: 10;
+}
+
+/* carved‑in effect */
+.navbar::before {
+  content: '';
+  position: absolute;
+  top: 5px;
+  left: 20px;
+  right: 20px;
+  height: 2px;
+  background: radial-gradient(circle, #f3d9a4 0%, transparent 80%);
+  opacity: 0.5;
+  border-radius: 50%;
+}
+
+.navbar .brand {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #fbe9c3;
+  text-shadow: 3px 3px 0 #3f2e1b;
+  padding: 0.2rem 0.8rem;
+  background: #4f3a22;
+  border-radius: 40px;
+  box-shadow: inset 0 -2px 0 #2f1e0e;
+  letter-spacing: 1px;
+  transition: 0.2s;
+}
+.navbar .brand:hover {
+  background: #6f4f2f;
+  color: #ffe9b0;
+  text-shadow: 2px 2px 0 #1f130a;
+  transform: scale(1.02);
+}
+
+/* nav links container – spaced out */
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 2.5rem;  /* ← more distance */
+}
+
+.nav-links a, .nav-links button {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  color: #fbe9c3;
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  padding: 0.5rem 1.2rem;
+  cursor: pointer;
+  border-radius: 40px;
+  transition: all 0.2s;
+  position: relative;
+  text-shadow: 1px 1px 0 #1f130a;
+}
+
+/* little wood‑carved dividers */
+.nav-links a:not(:last-child)::after,
+.nav-links button:not(:last-child)::after {
+  content: '⋮';
+  position: absolute;
+  right: -1.5rem;
+  color: #c9a03d;
+  font-size: 1.8rem;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0.7;
+  text-shadow: 1px 1px 0 #3f2e1b;
+}
+
+.nav-links a:hover, .nav-links button:hover {
+  background-color: #b78c5a;
+  color: #2c1e0e;
+  text-shadow: none;
+  transform: translateY(-4px);
+  box-shadow: 0 6px 0 #5a3e1b;
+}
+
+.nav-links a:active, .nav-links button:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 #5a3e1b;
+}
+
+/* user avatar in nav */
+.nav-links .avatar {
+  background: #c9a03d;
+  width: 2.8rem;
+  height: 2.8rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  color: #2c1e0e;
+  border: 2px solid #fbe9c3;
+  box-shadow: 0 4px 0 #5a3e1b;
+}
+
+/* ===== Buttons (general) ===== */
+button, .submit-btn, .cancel-btn, .del-btn, .like-btn {
+  background: var(--accent-terracotta);
+  border: none;
+  padding: 0.7rem 1.8rem;
+  font-family: var(--font-serif);
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: #fef0d7;
+  border-radius: 50px;
+  box-shadow: 0 7px 0 #6b3f2a;
+  cursor: pointer;
+  transition: 0.1s ease;
+  border: 1px solid #d68a5c;
+  letter-spacing: 0.5px;
+}
+button:hover, .submit-btn:hover, .cancel-btn:hover, .del-btn:hover, .like-btn:hover {
+  background: var(--accent-gold);
+  box-shadow: 0 5px 0 #7f6139;
+  transform: translateY(2px);
+}
+button:active, .submit-btn:active {
+  transform: translateY(6px);
+  box-shadow: none;
+}
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.cancel-btn {
+  background: #8b7a64;
+  box-shadow: 0 7px 0 #5f4f3a;
+}
+.delete-btn {
+  background: #a14545;
+  box-shadow: 0 7px 0 #632b2b;
+}
+.like-btn {
+  background: #ac4a4a;
+}
+
+/* ===== Forms ===== */
+.field {
+  margin-bottom: 2rem;
+}
+label {
+  display: block;
+  font-family: var(--font-serif);
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #fbe9c3;
+  margin-bottom: 0.3rem;
+  letter-spacing: 0.5px;
+  text-shadow: 1px 1px 0 #1f130a;
+}
+input, select, textarea {
+  width: 100%;
+  padding: 0.9rem 1.2rem;
+  background: #fff5e6;
+  border: 3px solid #8b6b41;
+  border-radius: 30px;
+  font-size: 1.1rem;
+  color: #2c1e0e;
+  transition: 0.2s;
+  box-shadow: inset 0 3px 6px rgba(0,0,0,0.2);
+}
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: #c9a03d;
+  box-shadow: inset 0 3px 6px rgba(0,0,0,0.2), 0 0 0 4px #4d7a4d50;
+}
+input.error, select.error, textarea.error {
+  border-color: #b35f5f;
+  background: #ffe6e0;
+}
+.err-msg {
+  display: block;
+  margin-top: 0.3rem;
+  color: #ffa07a;
+  font-size: 0.95rem;
+  font-style: italic;
+}
+.api-error {
+  background: #b35f5f30;
+  border-left: 4px solid #b35f5f;
+  padding: 1rem;
+  border-radius: 20px;
+  margin-bottom: 1.5rem;
+  color: #ffe0d0;
+}
+
+/* ===== HomeView – recipe feed ===== */
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  margin: 2.5rem 0;
+  justify-content: center;
+  background: #4f3a2290;
+  padding: 1rem 2rem;
+  border-radius: 60px;
+  backdrop-filter: blur(2px);
+  border: 1px solid #b78c5a;
+}
+.filter-bar button {
+  background: #fbe9c3;
+  color: #2c1e0e;
+  box-shadow: 0 4px 0 #9c7c5b;
+  border: 1px solid #b78c5a;
+  font-size: 1rem;
+}
+.filter-bar button.active {
+  background: #4d7a4d;
+  color: #fbe9c3;
+  box-shadow: 0 4px 0 #2b4a2b;
+}
+.search-input {
+  background: #fff5e6 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%238b5a2b' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='M21 21l-4.35-4.35'/%3E%3C/svg%3E") no-repeat 1.2rem center;
+  background-size: 1.4rem;
+  padding-left: 3.5rem;
+  border-radius: 60px;
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto;
+  display: block;
+}
+
+/* ===== RecipeCard – like a wooden plaque ===== */
+.recipe-card {
+  display: block;
+  background: #fcf3e1;
+  border: 4px solid #8b6b41;
+  border-radius: 50px 20px 50px 20px;
+  padding: 2rem;
+  margin-bottom: 2.5rem;
+  box-shadow: 15px 15px 0 #4f3a22;
+  transition: 0.25s;
+  text-decoration: none;
+  color: #2c1e0e;
+  position: relative;
+}
+.recipe-card:hover {
+  transform: translate(-8px, -8px);
+  box-shadow: 20px 20px 0 #4d7a4d;
+  border-color: #c9a03d;
+}
+.recipe-card .meta {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin-bottom: 1rem;
+  font-size: 1rem;
+  color: #6b4f2f;
+}
+.avatar-tag {
+  background: #b78c5a;
+  border-radius: 50%;
+  width: 2.5rem;
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  color: #2c1e0e;
+  border: 2px solid #fbe9c3;
+  box-shadow: 0 3px 0 #5a3e1b;
+}
+.category-tag {
+  background: #b86b3f;
+  color: #fbe9c3;
+  padding: 0.2rem 1.2rem;
+  border-radius: 40px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-transform: lowercase;
+  display: inline-block;
+  box-shadow: 0 3px 0 #6b3f2a;
+}
+.likes {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  color: #ac4a4a;
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+/* ===== RecipeDetailView – feast hall ===== */
+.recipe {
+  background: #fef7e9;
+  border-radius: 80px 30px 80px 30px;
+  padding: 3rem;
+  box-shadow: 15px 15px 0 #b78c5a;
+  border: 3px solid #8b6b41;
+  position: relative;
+}
+.recipe::before {
+  content: '⚜️';
+  position: absolute;
+  top: -10px;
+  left: 30px;
+  font-size: 3rem;
+  opacity: 0.5;
+  transform: rotate(-10deg);
+}
+.back {
+  background: none;
+  box-shadow: none;
+  color: #fbe9c3;
+  padding-left: 0;
+  margin-bottom: 1.5rem;
+  font-size: 1.2rem;
+}
+.recipe-header {
+  border-bottom: 3px dashed #c9a03d;
+  padding-bottom: 2rem;
+  margin-bottom: 2rem;
+}
+.recipe-header .meta {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+  margin-top: 1.2rem;
+}
+.avatar {
+  background: #b78c5a;
+  width: 4rem;
+  height: 4rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: bold;
+  color: #2c1e0e;
+  border: 3px solid #fbe9c3;
+  box-shadow: 0 5px 0 #5a3e1b;
+}
+.body p {
+  margin-bottom: 1.2rem;
+  font-size: 1.2rem;
+  color: #2c1e0e;
+}
+.ingredients-grid, .steps-list {
+  background: #fff5e6;
+  border-radius: 40px;
+  padding: 2rem;
+  margin: 2.5rem 0;
+  border: 2px solid #b78c5a;
+  box-shadow: inset 0 2px 5px #00000020;
+}
+.ingredients-grid h3, .steps-list h3 {
+  margin-top: 0;
+  color: #5a3e1b;
+}
+.ingredient-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  border-bottom: 1px dotted #c9a03d;
+  font-size: 1.1rem;
+}
+.step-item {
+  margin-bottom: 1.5rem;
+  counter-increment: step-counter;
+  padding-left: 3rem;
+  position: relative;
+  font-size: 1.1rem;
+}
+.step-item:before {
+  content: counter(step-counter);
+  position: absolute;
+  left: 0;
+  background: #4d7a4d;
+  color: #fbe9c3;
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  box-shadow: 0 3px 0 #2b4a2b;
+}
+.recipe-footer {
+  display: flex;
+  gap: 1.5rem;
+  margin-top: 3rem;
+}
+
+/* ===== AddRecipeView – kitchen counter ===== */
+.write-page {
+  max-width: 900px;
+  margin: 0 auto;
+}
+.step-row, .ingredient-row {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 1rem;
+  background: #fff5e6;
+  padding: 0.7rem 1rem;
+  border-radius: 60px;
+  border: 2px solid #b78c5a;
+}
+.step-row input, .ingredient-row input {
+  flex: 1;
+  border-radius: 40px;
+}
+.step-row button, .ingredient-row button {
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+  border-radius: 50%;
+  background: #a14545;
+  box-shadow: 0 4px 0 #632b2b;
+  font-weight: bold;
+  font-size: 1.2rem;
+  line-height: 1;
+}
+.actions {
+  display: flex;
+  gap: 1.5rem;
+  justify-content: flex-end;
+  margin-top: 3rem;
+}
+
+/* ===== ProfileView – adventurer's journal ===== */
+.profile-header {
+  display: flex;
+  gap: 2.5rem;
+  align-items: center;
+  background: #4f3a22;
+  border-radius: 80px 20px 80px 20px;
+  padding: 2.5rem;
+  margin-bottom: 2.5rem;
+  border: 3px solid #b78c5a;
+  box-shadow: 10px 10px 0 #2b1b0e;
+}
+.big-avatar {
+  width: 7rem;
+  height: 7rem;
+  background: #b78c5a;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3.5rem;
+  color: #2c1e0e;
+  border: 5px solid #c9a03d;
+  box-shadow: 0 7px 0 #5a3e1b;
+}
+.profile-header h1 {
+  color: #fbe9c3;
+  margin-bottom: 0.2rem;
+}
+.bio {
+  font-style: italic;
+  color: #e0cba0;
+  margin: 0.5rem 0;
+  font-size: 1.1rem;
+}
+.email {
+  font-size: 1rem;
+  color: #c9a03d;
+}
+.recipe-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.2rem 2rem;
+  background: #fcf3e1;
+  border-radius: 60px;
+  margin-bottom: 1rem;
+  border: 2px solid #b78c5a;
+  box-shadow: 5px 5px 0 #4f3a22;
+}
+.recipe-title {
+  font-weight: 600;
+  font-size: 1.3rem;
+  color: #2c1e0e;
+}
+.recipe-row-meta {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+/* ===== LoginView – cosy hearth ===== */
+.login-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 70vh;
+}
+.login-page .card {
+  background: #fcf3e1;
+  padding: 3.5rem;
+  border-radius: 100px 40px 100px 40px;
+  box-shadow: 20px 20px 0 #4f3a22;
+  max-width: 500px;
+  width: 100%;
+  border: 4px solid #b78c5a;
+  position: relative;
+}
+.login-page .card::after {
+  content: '🔥';
+  position: absolute;
+  bottom: -20px;
+  right: -20px;
+  font-size: 4rem;
+  opacity: 0.3;
+  transform: rotate(10deg);
+}
+.login-page .subtitle {
+  font-size: 1rem;
+  background: #ecd9c0;
+  padding: 1rem;
+  border-radius: 30px;
+  margin: 1.5rem 0;
+  text-align: center;
+  color: #2c1e0e;
+}
+code {
+  background: #b78c5a;
+  color: #2c1e0e;
+  padding: 0.2rem 0.5rem;
+  border-radius: 12px;
+  font-weight: bold;
+}
+
+/* ===== NotFound ===== */
+.not-found {
+  text-align: center;
+  padding: 6rem 1rem;
+}
+.not-found .code {
+  font-size: 9rem;
+  font-family: var(--font-serif);
+  color: #b78c5a;
+  text-shadow: 8px 8px 0 #c9a03d;
+  line-height: 1;
+}
+
+/* ===== Text color fine-tuning ===== */
+/* Improve placeholder readability */
+::placeholder {
+  color: #8b6b41;
+  opacity: 0.8;
+}
+:-ms-input-placeholder { color: #8b6b41; }
+::-ms-input-placeholder { color: #8b6b41; }
+
+/* Ensure text on dark backgrounds is crisp */
+body, .navbar, .profile-header, .not-found {
+  color: #fef0d7;
+}
+
+/* Keep light‑background cards with dark text */
+.recipe-card, .recipe, .login-page .card, .step-row, .ingredient-row, .filter-bar button {
+  color: #2c1e0e;
+}
+
+/* Category tags inside cards – already have light text, but ensure contrast */
+.category-tag {
+  color: #fef0d7;
+}
+
+/* Error messages – already light red, fine */
+.err-msg {
+  color: #ffb39b;
+}
+
+/* Placeholder inside light inputs – already set above, but ensure it's visible */
+input::placeholder, textarea::placeholder {
+  color: #8b6b41;
+}
+
+/* "No recipes" message (if any) – should be readable */
+.empty, .no-results {
+  color: #fbe9c3;
+  background: #4f3a22;
+  padding: 1rem;
+  border-radius: 40px;
+  text-align: center;
+}
