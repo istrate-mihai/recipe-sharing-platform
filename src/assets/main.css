@@ -277,12 +277,13 @@ input.error, select.error, textarea.error {
   font-style: italic;
 }
 .api-error {
-  background: #b35f5f30;
-  border-left: 4px solid #b35f5f;
+  background: #b35f5f20;
+  border-left: 4px solid #a14545;
   padding: 1rem;
   border-radius: 20px;
   margin-bottom: 1.5rem;
-  color: #ffe0d0;
+  color: #7a1f1f;
+  font-weight: 600;
 }
 
 /* ===== HomeView – recipe feed ===== */
