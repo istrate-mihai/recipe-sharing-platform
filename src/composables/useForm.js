@@ -12,7 +12,7 @@ export function useForm(initialValues, validationRules = {}) {
 
     let result
     if (typeof rule === 'function') {
-      result = rule(values.value[field])
+      result = rule(values.value[field], values.value)
     } else if (rule && rule.each) {
       // For arrays: rule.each is a function that validates each item
       const arr = values.value[field]

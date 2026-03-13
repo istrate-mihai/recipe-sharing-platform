@@ -272,9 +272,10 @@ input.error, select.error, textarea.error {
 .err-msg {
   display: block;
   margin-top: 0.3rem;
-  color: #ffa07a;
+  color: #5a0000;
   font-size: 0.95rem;
   font-style: italic;
+  font-weight: 600;
 }
 .api-error {
   background: #b35f5f30;
@@ -282,7 +283,7 @@ input.error, select.error, textarea.error {
   padding: 1rem;
   border-radius: 20px;
   margin-bottom: 1.5rem;
-  color: #ffe0d0;
+  color: #5a0000;
 }
 
 /* ===== HomeView – recipe feed ===== */
@@ -662,9 +663,9 @@ body, .navbar, .profile-header, .not-found {
   color: #fef0d7;
 }
 
-/* Error messages – already light red, fine */
+/* Error messages – dark red for contrast on light card backgrounds */
 .err-msg {
-  color: #ffb39b;
+  color: #5a0000;
 }
 
 /* Placeholder inside light inputs – already set above, but ensure it's visible */

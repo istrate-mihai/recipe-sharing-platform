@@ -1,512 +1,12 @@
 import { ref, computed } from 'vue';
 import { defineStore } from 'pinia';
-
-const SEED_RECIPES = [
-  {
-    id: 1,
-    authorId: 1,
-    authorName: 'Ada Lovelace',
-    authorAvatar: 'AL',
-    title: 'Spaghetti Carbonara',
-    description: 'A classic Roman pasta with crispy pancetta, eggs, and pecorino. Creamy without a drop of cream.',
-    category: 'pasta',
-    difficulty: 'medium',
-    prepTime: 10,
-    cookTime: 20,
-    ingredients: [
-      { amount: '400g', name: 'spaghetti' },
-      { amount: '150g', name: 'pancetta or guanciale' },
-      { amount: '4',    name: 'egg yolks' },
-      { amount: '1',    name: 'whole egg' },
-      { amount: '80g',  name: 'pecorino romano, grated' },
-      { amount: '1 tsp', name: 'black pepper, freshly cracked' },
-    ],
-    steps: [
-      'Bring a large pot of heavily salted water to a boil and cook spaghetti until al dente.',
-      'Fry pancetta in a pan over medium heat until crispy. Remove from heat.',
-      'Whisk egg yolks, whole egg, and pecorino together in a bowl. Season with black pepper.',
-      'Reserve 1 cup of pasta water before draining.',
-      'Add hot pasta to the pan with pancetta off the heat. Pour egg mixture over and toss quickly.',
-      'Add pasta water a splash at a time, tossing until glossy and creamy. Serve immediately.',
-    ],
-    createdAt: '2024-01-10T10:00:00Z',
-    likes: 54,
-    image: null,
-  },
-  {
-    id: 2,
-    authorId: 2,
-    authorName: 'Grace Hopper',
-    authorAvatar: 'GH',
-    title: 'French Onion Soup',
-    description: 'Slow-caramelised onions in a rich beef broth, topped with toasted bread and melted gruyère.',
-    category: 'soup',
-    difficulty: 'medium',
-    prepTime: 15,
-    cookTime: 75,
-    ingredients: [
-      { amount: '1kg',   name: 'yellow onions, thinly sliced' },
-      { amount: '4 tbsp', name: 'unsalted butter' },
-      { amount: '1 tbsp', name: 'olive oil' },
-      { amount: '150ml', name: 'dry white wine' },
-      { amount: '1.5L',  name: 'beef stock' },
-      { amount: '4 slices', name: 'baguette, toasted' },
-      { amount: '120g',  name: 'gruyère, grated' },
-    ],
-    steps: [
-      'Melt butter with olive oil in a heavy pot over low heat. Add onions and a pinch of salt.',
-      'Cook onions for 45–60 minutes, stirring every 10 minutes, until deeply caramelised and golden brown.',
-      'Add white wine and scrape up any browned bits. Simmer 5 minutes.',
-      'Add beef stock and simmer for 20 minutes. Season to taste.',
-      'Ladle soup into oven-safe bowls. Top with toasted baguette and grated gruyère.',
-      'Broil until cheese is bubbling and golden. Serve immediately.',
-    ],
-    createdAt: '2024-01-18T14:00:00Z',
-    likes: 41,
-    image: null,
-  },
-  {
-    id: 3,
-    authorId: 1,
-    authorName: 'Ada Lovelace',
-    authorAvatar: 'AL',
-    title: 'Avocado Toast with Poached Eggs',
-    description: 'Creamy smashed avocado on sourdough, topped with perfectly poached eggs and chilli flakes.',
-    category: 'breakfast',
-    difficulty: 'easy',
-    prepTime: 5,
-    cookTime: 10,
-    ingredients: [
-      { amount: '2 slices', name: 'sourdough bread' },
-      { amount: '1 large',  name: 'ripe avocado' },
-      { amount: '2',        name: 'eggs' },
-      { amount: '1 tbsp',   name: 'white wine vinegar' },
-      { amount: '½ tsp',    name: 'chilli flakes' },
-      { amount: '1',        name: 'lemon, juice only' },
-      { amount: 'to taste', name: 'salt and black pepper' },
-    ],
-    steps: [
-      'Toast the sourdough until golden and crisp.',
-      'Scoop avocado into a bowl. Add lemon juice, salt, and pepper. Smash with a fork.',
-      'Bring a pot of water to a gentle simmer. Add vinegar.',
-      'Crack each egg into a small cup. Swirl the water and slide each egg in. Poach 3 minutes.',
-      'Spread avocado over toast. Top with drained poached eggs.',
-      'Finish with chilli flakes and a crack of black pepper.',
-    ],
-    createdAt: '2024-01-22T08:30:00Z',
-    likes: 37,
-    image: null,
-  },
-  {
-    id: 4,
-    authorId: 2,
-    authorName: 'Grace Hopper',
-    authorAvatar: 'GH',
-    title: 'Beef Tacos',
-    description: 'Crispy fried corn tortillas loaded with spiced ground beef, pickled onion, and fresh salsa.',
-    category: 'meat',
-    difficulty: 'easy',
-    prepTime: 20,
-    cookTime: 15,
-    ingredients: [
-      { amount: '500g',  name: 'ground beef' },
-      { amount: '8',     name: 'small corn tortillas' },
-      { amount: '1 tsp', name: 'ground cumin' },
-      { amount: '1 tsp', name: 'smoked paprika' },
-      { amount: '½ tsp', name: 'garlic powder' },
-      { amount: '1',     name: 'red onion, finely diced' },
-      { amount: '2',     name: 'limes' },
-      { amount: '1 cup', name: 'fresh coriander, chopped' },
-      { amount: '2',     name: 'tomatoes, diced' },
-    ],
-    steps: [
-      'Mix red onion with lime juice and a pinch of salt. Set aside to quick-pickle.',
-      'Brown ground beef in a pan over high heat. Drain excess fat.',
-      'Add cumin, paprika, garlic powder, salt and pepper. Cook 2 more minutes.',
-      'Mix diced tomatoes with coriander and a squeeze of lime for salsa.',
-      'Warm tortillas in a dry pan until lightly charred on each side.',
-      'Fill tortillas with beef, pickled onion, and salsa. Serve with lime wedges.',
-    ],
-    createdAt: '2024-02-01T18:00:00Z',
-    likes: 49,
-    image: null,
-  },
-  {
-    id: 5,
-    authorId: 1,
-    authorName: 'Ada Lovelace',
-    authorAvatar: 'AL',
-    title: 'Caesar Salad',
-    description: 'Crisp romaine, homemade anchovy dressing, and sourdough croutons. The real version.',
-    category: 'salad',
-    difficulty: 'easy',
-    prepTime: 15,
-    cookTime: 10,
-    ingredients: [
-      { amount: '2 heads', name: 'romaine lettuce, chopped' },
-      { amount: '4',       name: 'anchovy fillets' },
-      { amount: '1 clove', name: 'garlic' },
-      { amount: '1',       name: 'egg yolk' },
-      { amount: '2 tbsp',  name: 'lemon juice' },
-      { amount: '1 tsp',   name: 'Dijon mustard' },
-      { amount: '80ml',    name: 'extra virgin olive oil' },
-      { amount: '40g',     name: 'parmesan, finely grated' },
-      { amount: '2 slices', name: 'sourdough, torn and toasted' },
-    ],
-    steps: [
-      'Crush anchovies and garlic into a paste using the back of a knife.',
-      'Whisk together anchovy paste, egg yolk, lemon juice, and mustard.',
-      'Slowly drizzle in olive oil while whisking to emulsify into a creamy dressing.',
-      'Toss torn sourdough in olive oil and toast in a pan until golden.',
-      'Toss romaine with dressing until every leaf is coated.',
-      'Top with croutons and a generous shower of parmesan.',
-    ],
-    createdAt: '2024-02-08T12:00:00Z',
-    likes: 28,
-    image: null,
-  },
-  {
-    id: 6,
-    authorId: 2,
-    authorName: 'Grace Hopper',
-    authorAvatar: 'GH',
-    title: 'Chocolate Lava Cake',
-    description: 'Warm dark chocolate cake with a molten centre. Eight minutes in the oven, unforgettable.',
-    category: 'dessert',
-    difficulty: 'medium',
-    prepTime: 15,
-    cookTime: 12,
-    ingredients: [
-      { amount: '170g',   name: 'dark chocolate (70%), chopped' },
-      { amount: '115g',   name: 'unsalted butter' },
-      { amount: '2',      name: 'whole eggs' },
-      { amount: '2',      name: 'egg yolks' },
-      { amount: '100g',   name: 'caster sugar' },
-      { amount: '2 tbsp', name: 'plain flour' },
-      { amount: 'pinch',  name: 'sea salt' },
-    ],
-    steps: [
-      'Preheat oven to 220°C. Butter four ramekins and dust with cocoa powder.',
-      'Melt chocolate and butter together over a bain-marie. Stir until smooth.',
-      'Whisk eggs, yolks, and sugar until pale and thick, about 3 minutes.',
-      'Fold chocolate mixture into egg mixture. Sift in flour and salt. Fold gently.',
-      'Divide batter between ramekins. Refrigerate up to 24 hours, or bake immediately.',
-      'Bake 10–12 minutes until edges are set but centre still wobbles. Invert onto plates and serve.',
-    ],
-    createdAt: '2024-02-14T19:00:00Z',
-    likes: 67,
-    image: null,
-  },
-  {
-    id: 7,
-    authorId: 1,
-    authorName: 'Ada Lovelace',
-    authorAvatar: 'AL',
-    title: 'Shakshuka',
-    description: 'Eggs poached in a spiced tomato and pepper sauce. One pan, deeply satisfying.',
-    category: 'breakfast',
-    difficulty: 'easy',
-    prepTime: 10,
-    cookTime: 25,
-    ingredients: [
-      { amount: '6',      name: 'eggs' },
-      { amount: '400g',   name: 'canned crushed tomatoes' },
-      { amount: '2',      name: 'red peppers, diced' },
-      { amount: '1',      name: 'white onion, diced' },
-      { amount: '3 cloves', name: 'garlic, minced' },
-      { amount: '1 tsp',  name: 'ground cumin' },
-      { amount: '1 tsp',  name: 'smoked paprika' },
-      { amount: '½ tsp',  name: 'cayenne pepper' },
-      { amount: '1 tbsp', name: 'olive oil' },
-      { amount: 'handful', name: 'fresh parsley, chopped' },
-    ],
-    steps: [
-      'Heat olive oil in a wide pan. Sauté onion and peppers until soft, about 8 minutes.',
-      'Add garlic, cumin, paprika, and cayenne. Cook 1 minute until fragrant.',
-      'Pour in crushed tomatoes. Simmer 10 minutes until sauce thickens. Season well.',
-      'Make six wells in the sauce with a spoon. Crack an egg into each well.',
-      'Cover and cook over low heat for 6–8 minutes until whites are set, yolks still runny.',
-      'Scatter parsley over the top and serve straight from the pan with crusty bread.',
-    ],
-    createdAt: '2024-02-20T09:00:00Z',
-    likes: 45,
-    image: null,
-  },
-  {
-    id: 8,
-    authorId: 2,
-    authorName: 'Grace Hopper',
-    authorAvatar: 'GH',
-    title: 'Mushroom Risotto',
-    description: 'Slow-stirred arborio rice with mixed mushrooms, white wine, and a generous finish of butter.',
-    category: 'vegetarian',
-    difficulty: 'hard',
-    prepTime: 15,
-    cookTime: 35,
-    ingredients: [
-      { amount: '320g',   name: 'arborio rice' },
-      { amount: '400g',   name: 'mixed mushrooms, sliced' },
-      { amount: '1.2L',   name: 'vegetable stock, warm' },
-      { amount: '150ml',  name: 'dry white wine' },
-      { amount: '1',      name: 'white onion, finely diced' },
-      { amount: '2 cloves', name: 'garlic, minced' },
-      { amount: '60g',    name: 'unsalted butter' },
-      { amount: '60g',    name: 'parmesan, grated' },
-      { amount: '2 tbsp', name: 'olive oil' },
-    ],
-    steps: [
-      'Sauté mushrooms in olive oil over high heat until golden. Season and set aside.',
-      'In the same pan, melt half the butter over medium heat. Soften onion 5 minutes.',
-      'Add garlic and rice. Toast rice for 2 minutes, stirring constantly.',
-      'Pour in wine. Stir until fully absorbed.',
-      'Add warm stock one ladle at a time, stirring constantly and waiting until each ladle is absorbed before adding the next. This takes about 20 minutes.',
-      'When rice is al dente and creamy, remove from heat. Stir in remaining butter and parmesan.',
-      'Fold in mushrooms. Rest 2 minutes, then serve.',
-    ],
-    createdAt: '2024-03-01T17:00:00Z',
-    likes: 33,
-    image: null,
-  },
-  {
-    id: 9,
-    authorId: 1,
-    authorName: 'Ada Lovelace',
-    authorAvatar: 'AL',
-    title: 'Chicken Tikka Masala',
-    description: 'Tender marinated chicken in a smoky, aromatic tomato cream sauce. Serve with basmati.',
-    category: 'meat',
-    difficulty: 'medium',
-    prepTime: 30,
-    cookTime: 30,
-    ingredients: [
-      { amount: '700g',   name: 'chicken thighs, cubed' },
-      { amount: '200ml',  name: 'plain yoghurt' },
-      { amount: '400g',   name: 'canned tomatoes' },
-      { amount: '150ml',  name: 'double cream' },
-      { amount: '1',      name: 'large onion, diced' },
-      { amount: '3 cloves', name: 'garlic, minced' },
-      { amount: '2 tsp',  name: 'garam masala' },
-      { amount: '1 tsp',  name: 'ground cumin' },
-      { amount: '1 tsp',  name: 'turmeric' },
-      { amount: '1 tsp',  name: 'smoked paprika' },
-      { amount: '2 tbsp', name: 'neutral oil' },
-    ],
-    steps: [
-      'Mix chicken with yoghurt, half the garam masala, cumin, and turmeric. Marinate at least 1 hour.',
-      'Grill or pan-fry chicken over high heat until charred in spots. Set aside.',
-      'Fry onion in oil until golden, about 10 minutes. Add garlic, paprika, and remaining spices.',
-      'Add tomatoes. Simmer 15 minutes until thick.',
-      'Blend sauce until smooth (optional). Return to pan.',
-      'Add cream and chicken. Simmer 5 minutes. Finish with remaining garam masala and serve.',
-    ],
-    createdAt: '2024-03-10T18:30:00Z',
-    likes: 58,
-    image: null,
-  },
-  {
-    id: 10,
-    authorId: 2,
-    authorName: 'Grace Hopper',
-    authorAvatar: 'GH',
-    title: 'Banana Pancakes',
-    description: 'Fluffy two-ingredient banana pancakes. Gluten-free, naturally sweet, ready in ten minutes.',
-    category: 'breakfast',
-    difficulty: 'easy',
-    prepTime: 5,
-    cookTime: 10,
-    ingredients: [
-      { amount: '2 large', name: 'ripe bananas' },
-      { amount: '2',       name: 'eggs' },
-      { amount: 'pinch',   name: 'cinnamon' },
-      { amount: '1 tsp',   name: 'vanilla extract' },
-      { amount: '1 tsp',   name: 'coconut oil, for frying' },
-    ],
-    steps: [
-      'Mash bananas in a bowl until completely smooth.',
-      'Add eggs, cinnamon, and vanilla. Whisk until combined.',
-      'Heat coconut oil in a non-stick pan over medium-low heat.',
-      'Drop small spoonfuls of batter into the pan. Cook 2 minutes until bubbles form.',
-      'Flip carefully and cook 1 more minute. They are fragile — keep them small.',
-      'Serve with fresh berries, honey, or maple syrup.',
-    ],
-    createdAt: '2024-03-18T08:00:00Z',
-    likes: 22,
-    image: null,
-  },
-  {
-    id: 11,
-    authorId: 1,
-    authorName: 'Ada Lovelace',
-    authorAvatar: 'AL',
-    title: 'Pasta e Fagioli',
-    description: 'A thick Italian peasant soup of borlotti beans and small pasta. Better the next day.',
-    category: 'soup',
-    difficulty: 'easy',
-    prepTime: 10,
-    cookTime: 40,
-    ingredients: [
-      { amount: '400g',   name: 'canned borlotti beans' },
-      { amount: '150g',   name: 'ditalini pasta' },
-      { amount: '400g',   name: 'canned tomatoes' },
-      { amount: '1L',     name: 'vegetable stock' },
-      { amount: '1',      name: 'carrot, diced' },
-      { amount: '2 stalks', name: 'celery, diced' },
-      { amount: '1',      name: 'white onion, diced' },
-      { amount: '2 cloves', name: 'garlic, minced' },
-      { amount: '1 sprig', name: 'fresh rosemary' },
-      { amount: '3 tbsp', name: 'olive oil' },
-    ],
-    steps: [
-      'Sauté onion, carrot, celery, and rosemary in olive oil over medium heat for 10 minutes.',
-      'Add garlic and cook 1 minute.',
-      'Add tomatoes and cook down 5 minutes.',
-      'Add beans and stock. Simmer 20 minutes.',
-      'Blend a third of the soup to thicken, then return to the pot.',
-      'Add pasta and cook until al dente. Drizzle with extra olive oil and serve.',
-    ],
-    createdAt: '2024-03-25T12:00:00Z',
-    likes: 31,
-    image: null,
-  },
-  {
-    id: 12,
-    authorId: 2,
-    authorName: 'Grace Hopper',
-    authorAvatar: 'GH',
-    title: 'Caprese Salad',
-    description: 'Buffalo mozzarella, ripe tomatoes, and fresh basil. Only three ingredients — quality is everything.',
-    category: 'salad',
-    difficulty: 'easy',
-    prepTime: 10,
-    cookTime: 0,
-    ingredients: [
-      { amount: '250g',   name: 'buffalo mozzarella' },
-      { amount: '4',      name: 'large ripe tomatoes' },
-      { amount: 'large handful', name: 'fresh basil leaves' },
-      { amount: '3 tbsp', name: 'extra virgin olive oil' },
-      { amount: '1 tbsp', name: 'aged balsamic vinegar' },
-      { amount: 'to taste', name: 'flaky sea salt and black pepper' },
-    ],
-    steps: [
-      'Slice tomatoes and mozzarella into even rounds, about 1cm thick.',
-      'Alternate tomato and mozzarella slices on a serving plate.',
-      'Tuck basil leaves between slices.',
-      'Drizzle generously with olive oil and balsamic.',
-      'Finish with flaky salt and cracked black pepper. Serve immediately.',
-    ],
-    createdAt: '2024-04-02T13:00:00Z',
-    likes: 19,
-    image: null,
-  },
-  {
-    id: 13,
-    authorId: 1,
-    authorName: 'Ada Lovelace',
-    authorAvatar: 'AL',
-    title: 'Lemon Tart',
-    description: 'A crisp butter pastry shell filled with silky, intensely lemony curd. Classic French pâtisserie.',
-    category: 'dessert',
-    difficulty: 'hard',
-    prepTime: 45,
-    cookTime: 35,
-    ingredients: [
-      { amount: '200g',  name: 'plain flour' },
-      { amount: '100g',  name: 'cold unsalted butter, cubed' },
-      { amount: '50g',   name: 'icing sugar' },
-      { amount: '1',     name: 'egg yolk' },
-      { amount: '3',     name: 'large lemons, zest and juice' },
-      { amount: '4',     name: 'eggs' },
-      { amount: '180g',  name: 'caster sugar' },
-      { amount: '120g',  name: 'unsalted butter, softened' },
-    ],
-    steps: [
-      'Blitz flour, cold butter, and icing sugar until breadcrumb-like. Add yolk and 2 tbsp cold water. Bring into a dough.',
-      'Wrap and refrigerate 30 minutes.',
-      'Roll pastry and line a 23cm tart tin. Blind bake at 180°C for 15 minutes, then 5 minutes uncovered.',
-      'Whisk eggs, caster sugar, lemon juice, and zest over a bain-marie until thick, about 10 minutes.',
-      'Remove from heat. Stir in softened butter piece by piece until glossy.',
-      'Pour curd into tart shell. Refrigerate at least 2 hours before slicing.',
-    ],
-    createdAt: '2024-04-10T15:00:00Z',
-    likes: 44,
-    image: null,
-  },
-  {
-    id: 14,
-    authorId: 2,
-    authorName: 'Grace Hopper',
-    authorAvatar: 'GH',
-    title: 'Roasted Cauliflower Curry',
-    description: 'Golden roasted cauliflower florets in a coconut milk and tomato curry. Rich, warming, fully plant-based.',
-    category: 'vegetarian',
-    difficulty: 'easy',
-    prepTime: 15,
-    cookTime: 35,
-    ingredients: [
-      { amount: '1 large', name: 'cauliflower, cut into florets' },
-      { amount: '400ml',   name: 'coconut milk' },
-      { amount: '400g',    name: 'canned tomatoes' },
-      { amount: '1',       name: 'onion, diced' },
-      { amount: '3 cloves', name: 'garlic, minced' },
-      { amount: '1 tbsp',  name: 'fresh ginger, grated' },
-      { amount: '2 tsp',   name: 'curry powder' },
-      { amount: '1 tsp',   name: 'turmeric' },
-      { amount: '1 tsp',   name: 'garam masala' },
-      { amount: '2 tbsp',  name: 'neutral oil' },
-    ],
-    steps: [
-      'Toss cauliflower with oil, turmeric, and salt. Roast at 200°C for 20 minutes until golden.',
-      'Meanwhile, sauté onion in oil 8 minutes. Add garlic, ginger, curry powder, and garam masala.',
-      'Cook spices 1 minute until fragrant. Add tomatoes and simmer 10 minutes.',
-      'Pour in coconut milk. Simmer 5 minutes.',
-      'Add roasted cauliflower. Stir gently and simmer 5 more minutes.',
-      'Serve with basmati rice and fresh coriander.',
-    ],
-    createdAt: '2024-04-18T18:00:00Z',
-    likes: 36,
-    image: null,
-  },
-  {
-    id: 15,
-    authorId: 1,
-    authorName: 'Ada Lovelace',
-    authorAvatar: 'AL',
-    title: 'Classic Beef Burger',
-    description: 'A thick, juicy smash burger with caramelised onions, American cheese, and special sauce.',
-    category: 'meat',
-    difficulty: 'medium',
-    prepTime: 20,
-    cookTime: 15,
-    ingredients: [
-      { amount: '600g',   name: 'beef mince (20% fat)' },
-      { amount: '4',      name: 'brioche buns' },
-      { amount: '4 slices', name: 'American cheese' },
-      { amount: '2',      name: 'onions, thinly sliced' },
-      { amount: '3 tbsp', name: 'mayonnaise' },
-      { amount: '1 tbsp', name: 'ketchup' },
-      { amount: '1 tbsp', name: 'American mustard' },
-      { amount: '1 tsp',  name: 'sweet pickle relish' },
-      { amount: 'handful', name: 'iceberg lettuce, shredded' },
-    ],
-    steps: [
-      'Slowly caramelise onions in butter over low heat for 30 minutes. Set aside.',
-      'Mix mayo, ketchup, mustard, and relish for the special sauce.',
-      'Divide mince into 4 loose balls. Do not overwork.',
-      'Heat a cast iron pan until smoking. Add a ball and smash flat with a spatula. Season generously.',
-      'Cook 2 minutes, flip, add cheese, cook 1 more minute.',
-      'Toast buns cut-side down in the pan. Assemble with sauce, lettuce, onions, and patty.',
-    ],
-    createdAt: '2024-04-25T19:00:00Z',
-    likes: 62,
-    image: null,
-  },
-];
+import { recipesApi } from '../services/api';
 
 const CATEGORIES = ['breakfast', 'pasta', 'soup', 'salad', 'meat', 'dessert', 'vegetarian'];
 const LEVELS     = ['easy', 'medium', 'hard'];
 
 export const useRecipesStore = defineStore('recipes', () => {
-    const recipes    = ref([...SEED_RECIPES]);
+    const recipes    = ref([]);
     const categories = ref([...CATEGORIES]);
     const levels     = ref([...LEVELS]);
     const isLoading  = ref(false);
@@ -516,72 +16,152 @@ export const useRecipesStore = defineStore('recipes', () => {
 
     // Getters
     const filtered = computed(() => {
-        const searchedValue = search.value.toLowerCase();
-        return recipes.value.filter(
-                    r => !search.value || r.title.toLowerCase().includes(searchedValue)
-                        || r.description.toLowerCase().includes(searchedValue)
-                    )
-                    .filter(r => !activeTag.value || r.category === activeTag.value)
-                    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        const q = search.value.toLowerCase();
+        return recipes.value
+            .filter(r => !q || r.title.toLowerCase().includes(q) || r.description.toLowerCase().includes(q))
+            .filter(r => !activeTag.value || r.category === activeTag.value)
+            .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
     });
 
-    function getById(id) {
-        return recipes.value.find(r => r.id === Number(id));
-    }
-
-    async function createRecipe(payload, author) {
+    // Fetch all recipes from the API
+    async function fetchRecipes() {
         isLoading.value = true;
-        await new Promise(r => setTimeout(r, 400));
-        const newRecipe = {
-            id: recipes.value.length ? Math.max(...recipes.value.map(r => r.id)) + 1 : 1,
-            authorId: author.id,
-            authorName: author.name,
-            authorAvatar: author.avatar,
-            createdAt: Date.now(),
-            likes: 0,
-            image: null,
-            ...payload
-        };
-
-        recipes.value.unshift(newRecipe);
-        isLoading.value = false;
-        return newRecipe;
+        error.value     = null;
+        try {
+            const data  = await recipesApi.index();
+            // Laravel returns { data: [...] } via API resources
+            recipes.value = data.data ?? data;
+        } catch (err) {
+            error.value = err.message;
+        } finally {
+            isLoading.value = false;
+        }
     }
 
-    function deleteRecipe(id) {
+    // Get a single recipe — tries local cache first, then fetches from API
+    async function getById(id) {
+        const local = recipes.value.find(r => r.id === Number(id));
+        if (local) return local;
+
+        try {
+            const data = await recipesApi.show(id);
+            return data.data ?? data;
+        } catch {
+            return null;
+        }
+    }
+
+    async function createRecipe(payload) {
+        isLoading.value = true;
+        error.value     = null;
+        try {
+            // Build FormData so the image file is sent as multipart
+            const fd = new FormData();
+            Object.entries(payload).forEach(([key, val]) => {
+                if (key === 'image') {
+                    if (val) fd.append('image', val);
+                } else if (Array.isArray(val)) {
+                    val.forEach((item, i) => {
+                        if (typeof item === 'object') {
+                            Object.entries(item).forEach(([k, v]) => fd.append(`${key}[${i}][${k}]`, v));
+                        } else {
+                            fd.append(`${key}[${i}]`, item);
+                        }
+                    });
+                } else {
+                    fd.append(key, val);
+                }
+            });
+
+            const data      = await recipesApi.store(fd);
+            const newRecipe = data.data ?? data;
+            recipes.value.unshift(newRecipe);
+            return newRecipe;
+        } catch (err) {
+            error.value = err.message;
+            throw err;
+        } finally {
+            isLoading.value = false;
+        }
+    }
+
+    async function updateRecipe(id, payload) {
+        isLoading.value = true;
+        error.value     = null;
+        try {
+            const fd = new FormData();
+            Object.entries(payload).forEach(([key, val]) => {
+                if (key === 'image') {
+                    if (val instanceof File) fd.append('image', val);
+                } else if (Array.isArray(val)) {
+                    val.forEach((item, i) => {
+                        if (typeof item === 'object') {
+                            Object.entries(item).forEach(([k, v]) => fd.append(`${key}[${i}][${k}]`, v));
+                        } else {
+                            fd.append(`${key}[${i}]`, item);
+                        }
+                    });
+                } else {
+                    fd.append(key, val);
+                }
+            });
+
+            const data    = await recipesApi.update(id, fd);
+            const updated = data.data ?? data;
+
+            // Update in local cache
+            const idx = recipes.value.findIndex(r => r.id === Number(id));
+            if (idx !== -1) recipes.value[idx] = updated;
+
+            return updated;
+        } catch (err) {
+            error.value = err.message;
+            throw err;
+        } finally {
+            isLoading.value = false;
+        }
+    }
+
+    async function deleteRecipe(id) {
+        await recipesApi.destroy(id);
         recipes.value = recipes.value.filter(r => r.id !== Number(id));
     }
 
-    function likeRecipe(id) {
-      const recipe = recipes.value.find(r => r.id === Number(id));
-      if (recipe) recipe.likes++;
+    async function likeRecipe(id) {
+        const data   = await recipesApi.like(id);
+        const recipe = recipes.value.find(r => r.id === Number(id));
+        if (recipe) {
+            // API returns the updated likes_count and is_liked flag
+            recipe.likes_count = data.likes_count;
+            recipe.is_liked    = data.liked;
+        }
+        return data;
     }
 
-    async function updateRecipe(payload, id) {
-        isLoading.value = true;
-        await new Promise(r => setTime(r, 400));
-
-        let foundRecipe = recipes.value.find(r => r.id === Number(id));
-        if (foundRecipe) {
-            foundRecipe = {...foundRecipe, ...payload};
+    async function favouriteRecipe(id) {
+        const data   = await recipesApi.favourite(id);
+        const recipe = recipes.value.find(r => r.id === Number(id));
+        if (recipe) {
+            recipe.is_favourited = data.favourited;
         }
-
-        return true;
+        return data;
     }
 
     return {
         recipes,
         categories,
+        levels,
         isLoading,
         error,
         search,
         activeTag,
         filtered,
+        fetchRecipes,
         getById,
         createRecipe,
-        deleteRecipe,
         updateRecipe,
+        deleteRecipe,
         likeRecipe,
-        levels,
-    }
+        favouriteRecipe,
+    };
 });

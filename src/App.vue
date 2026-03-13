@@ -1,5 +1,6 @@
 <script setup>
 import AppNav from './components/AppNav.vue';
+import ScrollToTop from './components/ScrollToTop.vue';
 </script>
 
 <template>
@@ -8,5 +9,6 @@ import AppNav from './components/AppNav.vue';
     <div>
       <RouterView />
     </div>
+    <ScrollToTop />
   </div>
 </template>
