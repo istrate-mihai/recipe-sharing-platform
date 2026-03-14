@@ -1,4 +1,4 @@
-const BASE_URL = 'https://recipe-sharing-platform-api-production.up.railway.app/api';
+const BASE_URL = 'https://api.recipe-sharing-platform.com/api';
 
 function getToken() {
     return localStorage.getItem('token');
