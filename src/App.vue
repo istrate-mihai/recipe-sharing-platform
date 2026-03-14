@@ -1,6 +1,18 @@
 <script setup>
+import { useHead } from '@unhead/vue';
 import AppNav from './components/AppNav.vue';
 import ScrollToTop from './components/ScrollToTop.vue';
+
+useHead({
+  title: 'Recipe Sharing Platform — Recipes Worth Cooking',
+  meta: [
+    { name: 'description', content: 'Discover and share delicious recipes from around the world. A community-driven platform for curious gourmets.' },
+    { property: 'og:title', content: 'Recipe Sharing Platform' },
+    { property: 'og:description', content: 'Discover and share delicious recipes from around the world.' },
+    { property: 'og:type', content: 'website' },
+    { property: 'og:url', content: 'https://recipe-sharing-platform.com' },
+  ],
+});
 </script>
 
 <template>

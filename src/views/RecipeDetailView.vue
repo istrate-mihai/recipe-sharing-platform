@@ -82,6 +82,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { useHead } from '@unhead/vue';
 import { useRecipesStore } from '../stores/recipes';
 import { useAuthStore } from '../stores/auth';
 import { useTimeAgo } from '../composables/useTimeAgo';
@@ -100,6 +101,40 @@ onMounted(async () => {
     recipe.value    = await recipes.getById(route.params.id);
     isLoading.value = false;
 });
+
+useHead(computed(() => {
+    if (!recipe.value) return {
+        title: 'Recipe | Recipe Sharing Platform',
+    };
+
+    const title = `${recipe.value.title} | Recipe Sharing Platform`;
+    const description = recipe.value.description
+        ? recipe.value.description.slice(0, 155).replace(/\n/g, ' ') + '…'
+        : `A delicious ${recipe.value.category} recipe shared on Recipe Sharing Platform.`;
+    const image = recipe.value.image_url ?? 'https://recipe-sharing-platform.com/og-default.jpg';
+    const url = `https://recipe-sharing-platform.com/recipe/${recipe.value.id}`;
+
+    return {
+        title,
+        meta: [
+            { name: 'description', content: description },
+
+            // Open Graph (Facebook, WhatsApp, LinkedIn)
+            { property: 'og:title', content: title },
+            { property: 'og:description', content: description },
+            { property: 'og:image', content: image },
+            { property: 'og:url', content: url },
+            { property: 'og:type', content: 'article' },
+            { property: 'og:site_name', content: 'Recipe Sharing Platform' },
+
+            // Twitter / X card
+            { name: 'twitter:card', content: 'summary_large_image' },
+            { name: 'twitter:title', content: title },
+            { name: 'twitter:description', content: description },
+            { name: 'twitter:image', content: image },
+        ],
+    };
+}));
 
 const timeAgo = useTimeAgo(computed(() => recipe.value?.created_at));
 
