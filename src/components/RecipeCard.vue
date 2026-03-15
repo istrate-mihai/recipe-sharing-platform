@@ -48,8 +48,34 @@ const categoryIcon = computed(() => CATEGORY_ICONS[props.recipe.category] ?? 'ðŸ
 </script>
 
 <style scoped>
-.card-image-wrap { width: 100%; height: 180px; overflow: hidden; border-radius: 12px 12px 0 0; flex-shrink: 0; }
-.card-image { width: 100%; height: 100%; object-fit: cover; display: block; }
+.card-image-wrap {
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+    border-radius: 12px 12px 0 0;
+    flex-shrink: 0;
+    background: linear-gradient(135deg, #3a2810 0%, #5a3e20 50%, #3a2810 100%);
+}
+.card-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+}
+.card-image-placeholder {
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, #3a2810 0%, #5a3e20 50%, #3a2810 100%);
+    font-size: 4rem;
+}
+.card-body  { padding: 1.4rem 1.6rem 1.6rem; }
+.card-meta  { display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.6rem; }
+.card-sep   { color: #a08060; font-size: 0.8rem; }
+.card-time  { color: #a08060; font-size: 0.85rem; }
+.card-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; }
+.card-category { font-size: 0.8rem; background: #8b6b4130; color: #c9a03d; padding: 2px 10px; border-radius: 20px; }
+.card-likes { color: #a08060; font-size: 0.9rem; }
 .card-image-placeholder {
     width: 100%; height: 100%;
     display: flex; align-items: center; justify-content: center;

@@ -6,13 +6,19 @@ const CATEGORIES = ['breakfast', 'pasta', 'soup', 'salad', 'meat', 'dessert', 'v
 const LEVELS     = ['easy', 'medium', 'hard'];
 
 export const useRecipesStore = defineStore('recipes', () => {
-    const recipes    = ref([]);
-    const categories = ref([...CATEGORIES]);
-    const levels     = ref([...LEVELS]);
-    const isLoading  = ref(false);
-    const error      = ref(null);
-    const search     = ref('');
-    const activeTag  = ref('');
+    const recipes       = ref([]);
+    const categories    = ref([...CATEGORIES]);
+    const levels        = ref([...LEVELS]);
+    const isLoading     = ref(false);
+    const error         = ref(null);
+    const search        = ref('');
+    const activeTag     = ref('');
+
+    // Pagination
+    const currentPage   = ref(1);
+    const lastPage      = ref(1);
+    const total         = ref(0);
+    const perPage       = ref(15);
 
     // Getters
     const filtered = computed(() => {
@@ -23,14 +29,18 @@ export const useRecipesStore = defineStore('recipes', () => {
             .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
     });
 
-    // Fetch all recipes from the API
-    async function fetchRecipes() {
+    // Fetch a page of recipes from the API
+    async function fetchRecipes(page = 1) {
         isLoading.value = true;
         error.value     = null;
         try {
-            const data  = await recipesApi.index();
-            // Laravel returns { data: [...] } via API resources
-            recipes.value = data.data ?? data;
+            const data = await recipesApi.index({ page, per_page: 10 });
+            // Laravel paginator returns { data: [...], meta: { current_page, last_page, total, per_page } }
+            recipes.value    = data.data ?? data;
+            currentPage.value = data.meta?.current_page ?? page;
+            lastPage.value    = data.meta?.last_page    ?? 1;
+            total.value       = data.meta?.total        ?? recipes.value.length;
+            perPage.value     = data.meta?.per_page     ?? 15;
         } catch (err) {
             error.value = err.message;
         } finally {
@@ -155,6 +165,10 @@ export const useRecipesStore = defineStore('recipes', () => {
         error,
         search,
         activeTag,
+        currentPage,
+        lastPage,
+        total,
+        perPage,
         filtered,
         fetchRecipes,
         getById,
