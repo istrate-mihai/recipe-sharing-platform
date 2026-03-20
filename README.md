@@ -2,6 +2,8 @@
 
 A full-stack recipe sharing application built with a hobbit-pantry aesthetic. Users can browse recipes, create accounts, post their own recipes with images, like and favourite dishes, and manage their profile — all backed by a production-deployed REST API.
 
+![Recipe Sharing Platform](recipe_sharing_platform.png)
+
 ---
 
 ## Live Architecture
