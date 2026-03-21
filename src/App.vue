@@ -35,6 +35,7 @@ useHead({
     <footer class="site-footer">
       <span>© {{ new Date().getFullYear() }} Recipe Sharing Platform</span>
       <RouterLink to="/about">About</RouterLink>
+      <RouterLink to="/contact">Contact</RouterLink>
       <RouterLink to="/privacy">Privacy Policy</RouterLink>
     </footer>
     <ScrollToTop />

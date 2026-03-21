@@ -18,29 +18,63 @@ export const useRecipesStore = defineStore('recipes', () => {
     const currentPage   = ref(1);
     const lastPage      = ref(1);
     const total         = ref(0);
-    const perPage       = ref(15);
+    const perPage       = ref(10);
 
     // Getters
     const filtered = computed(() => {
         const q = search.value.toLowerCase();
         return recipes.value
-            .filter(r => !q || r.title.toLowerCase().includes(q) || r.description.toLowerCase().includes(q))
+            .filter(r => !q || (r.title ?? '').toLowerCase().includes(q) || (r.description ?? '').toLowerCase().includes(q))
             .filter(r => !activeTag.value || r.category === activeTag.value)
-            .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+            .sort((a, b) => {
+                // created_at may be a Laravel timestamp object { date: '...' } or an ISO string
+                const dateA = new Date(a.created_at?.date ?? a.created_at);
+                const dateB = new Date(b.created_at?.date ?? b.created_at);
+                return dateB - dateA;
+            });
     });
 
-    // Fetch a page of recipes from the API
+    const hasMorePages = computed(() => currentPage.value < lastPage.value);
+
+    /**
+     * Fetch page 1 fresh (replaces current recipes).
+     * Called on mount and when filters/search change.
+     */
     async function fetchRecipes(page = 1) {
         isLoading.value = true;
         error.value     = null;
         try {
-            const data = await recipesApi.index({ page, per_page: 10 });
-            // Laravel paginator returns { data: [...], meta: { current_page, last_page, total, per_page } }
-            recipes.value    = data.data ?? data;
+            const data = await recipesApi.index({ page, per_page: perPage.value });
+            recipes.value     = data.data ?? data;
             currentPage.value = data.meta?.current_page ?? page;
             lastPage.value    = data.meta?.last_page    ?? 1;
             total.value       = data.meta?.total        ?? recipes.value.length;
-            perPage.value     = data.meta?.per_page     ?? 15;
+            perPage.value     = data.meta?.per_page     ?? 10;
+        } catch (err) {
+            error.value = err.message;
+        } finally {
+            isLoading.value = false;
+        }
+    }
+
+    /**
+     * Fetch the next API page and APPEND results to the existing list.
+     * Called by HomeView when the user turns toward the last loaded spread.
+     */
+    async function fetchNextPage() {
+        if (isLoading.value || !hasMorePages.value) return;
+        isLoading.value = true;
+        error.value     = null;
+        try {
+            const nextPage = currentPage.value + 1;
+            const data = await recipesApi.index({ page: nextPage, per_page: perPage.value });
+            const newRecipes  = data.data ?? data;
+            const existingIds = new Set(recipes.value.map(r => r.id));
+            const unique      = newRecipes.filter(r => !existingIds.has(r.id));
+            recipes.value     = [...recipes.value, ...unique];
+            currentPage.value = data.meta?.current_page ?? nextPage;
+            lastPage.value    = data.meta?.last_page    ?? lastPage.value;
+            total.value       = data.meta?.total        ?? recipes.value.length;
         } catch (err) {
             error.value = err.message;
         } finally {
@@ -169,8 +203,10 @@ export const useRecipesStore = defineStore('recipes', () => {
         lastPage,
         total,
         perPage,
+        hasMorePages,
         filtered,
         fetchRecipes,
+        fetchNextPage,
         getById,
         createRecipe,
         updateRecipe,

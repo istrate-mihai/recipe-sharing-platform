@@ -273,6 +273,16 @@ onMounted(() => {
 
 watch([() => recipesStore.activeTag, () => recipesStore.search], () => {
     currentSpread.value = 0;
+    recipesStore.fetchRecipes(1);
+});
+
+// When the user reaches the second-to-last spread of loaded recipes,
+// fetch the next API page in the background and append it.
+watch(currentSpread, (spread) => {
+    if (!recipesStore.hasMorePages) return;
+    if (spread >= totalSpreads.value - 2) {
+        recipesStore.fetchNextPage();
+    }
 });
 
 const allRecipes   = computed(() => recipesStore.filtered);

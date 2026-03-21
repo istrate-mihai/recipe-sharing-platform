@@ -1,10 +1,11 @@
 <template>
-    <div class="static-page">
-        <RouterLink to="/" class="back">← Back to recipes</RouterLink>
-
-        <div class="static-card">
-            <h1>Privacy Policy</h1>
-            <p class="last-updated">Last updated: March 2026</p>
+    <BookPage
+        title="Privacy Policy"
+        tagline="Last updated: March 2026"
+        left-chapter="Legal"
+        right-chapter="Recipe Sharing Platform"
+    >
+        <div class="book-prose">
 
             <section>
                 <h2>Who we are</h2>
@@ -77,8 +78,27 @@
                 <p>If you have any questions about this Privacy Policy, please contact us at: <a href="mailto:privacy@recipe-sharing-platform.com">privacy@recipe-sharing-platform.com</a></p>
             </section>
         </div>
-    </div>
+    </BookPage>
 </template>
 
 <script setup>
+import BookPage from '../components/BookPage.vue';
 </script>
+
+<style scoped>
+.book-prose { color: #2c1e0e; }
+.book-prose section { margin-bottom: 1.8rem; }
+.book-prose h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.15rem;
+    color: #5a3e1b;
+    margin-bottom: .5rem;
+    padding-bottom: .3rem;
+    border-bottom: 1px dashed #c9a03d55;
+}
+.book-prose p  { font-size: .97rem; line-height: 1.75; margin-bottom: .7rem; }
+.book-prose ul { padding-left: 1.2rem; margin-bottom: .7rem; }
+.book-prose ul li { font-size: .95rem; line-height: 1.65; margin-bottom: .4rem; }
+.book-prose a  { color: #b86b3f; font-weight: 600; }
+.book-prose a:hover { color: #4d7a4d; }
+</style>
