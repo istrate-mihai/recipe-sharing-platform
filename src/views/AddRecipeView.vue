@@ -224,6 +224,8 @@
                 <div class="book-cover book-cover--right"></div>
             </div>
         </form>
+
+        <PricingModal v-model="showPricing" />
     </div>
 </template>
 
@@ -232,10 +234,18 @@ import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useRecipesStore } from '../stores/recipes';
 import { useForm } from '../composables/useForm';
+import { usePlan } from '../composables/usePlan';
+import { useAuthStore } from '../stores/auth';
+import PricingModal from '../components/PricingModal.vue';
 
 const router       = useRouter();
 const recipesStore = useRecipesStore();
 const apiError     = ref(null);
+const auth         = useAuthStore();
+
+// ── Paywall ───────────────────────────────────────────────────────────────────
+const { atFreeLimit } = usePlan();
+const showPricing     = ref(false);
 
 const form = useForm(
     {
@@ -294,6 +304,12 @@ function removeImage() {
 }
 
 async function submit() {
+    // ── Free tier limit check ─────────────────────────────────────────────────
+    if (atFreeLimit.value) {
+        showPricing.value = true;
+        return;
+    }
+
     if (!form.validate()) return;
     apiError.value = null;
     try {
@@ -303,6 +319,7 @@ async function submit() {
             cook_time: Number(form.values.value.cook_time),
             image: form.values.value.image ?? null,
         });
+        auth.incrementRecipeCount();
         router.push({ name: 'recipe-detail', params: { id: newRecipe.id } });
     } catch (err) {
         apiError.value = err.message;

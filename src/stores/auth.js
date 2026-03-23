@@ -60,6 +60,30 @@ export const useAuthStore = defineStore('auth', () => {
         localStorage.removeItem('token');
     }
 
+    function incrementRecipeCount() {
+        if (!user.value) return;
+
+        user.value.recipe_count           = (user.value.recipe_count ?? 0) + 1;
+        user.value.remaining_free_recipes = Math.max(
+            0,
+            (user.value.remaining_free_recipes ?? 10) - 1
+        );
+
+        localStorage.setItem('user', JSON.stringify(user.value));
+    }
+
+    function decrementRecipeCount() {
+        if (!user.value) return;
+
+        user.value.recipe_count           = Math.max(0, (user.value.recipe_count ?? 0) - 1);
+        user.value.remaining_free_recipes = Math.min(
+            10,
+            (user.value.remaining_free_recipes ?? 10) + 1
+        );
+
+        localStorage.setItem('user', JSON.stringify(user.value));
+    }
+
     return {
         user,
         loading,
@@ -69,5 +93,7 @@ export const useAuthStore = defineStore('auth', () => {
         login,
         register,
         logout,
+        incrementRecipeCount,
+        decrementRecipeCount,
     };
 });

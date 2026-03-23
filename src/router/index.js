@@ -22,19 +22,19 @@ const routes = [
         path: '/add-recipe',
         name: 'add-recipe',
         component: () => import('../views/AddRecipeView.vue'),
-        meta: {  requiresAuth: true },
+        meta: { requiresAuth: true },
     },
     {
         path: '/profile',
         name: 'profile',
         component: () => import('../views/ProfileView.vue'),
-        meta: {  requiresAuth: true },
+        meta: { requiresAuth: true },
     },
     {
         path: '/login',
         name: 'login',
         component: () => import('../views/LoginView.vue'),
-        meta: {  guestOnly: true },
+        meta: { guestOnly: true },
     },
     {
         path: '/about',
@@ -51,6 +51,20 @@ const routes = [
         name: 'privacy',
         component: () => import('../views/PrivacyPolicyView.vue'),
     },
+    // ── Stripe ────────────────────────────────────────────────────────────────
+    {
+        path: '/checkout/success',
+        name: 'checkout-success',
+        component: () => import('../views/CheckoutSuccess.vue'),
+        meta: { requiresAuth: true },
+    },
+    {
+        path: '/settings/billing',
+        name: 'billing',
+        component: () => import('../views/BillingSettings.vue'),
+        meta: { requiresAuth: true },
+    },
+    // ─────────────────────────────────────────────────────────────────────────
     {
         path: '/:pathMatch(.*)*',
         name: 'not-found',

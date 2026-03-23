@@ -148,17 +148,26 @@
                             <button class="action-btn action-btn--like" @click="handleLike" :class="{ liked: recipe.is_liked }">
                                 {{ recipe.is_liked ? '♥' : '♡' }} {{ recipe.likes_count }}
                             </button>
+
                             <button
                                 v-if="auth.isLoggedIn"
                                 class="action-btn action-btn--fav"
                                 @click="handleFavourite"
                                 :class="{ liked: recipe.is_favourited }"
                             >{{ recipe.is_favourited ? '★' : '☆' }} Favourite</button>
+
+                            <button
+                                v-if="isPremium"
+                                class="action-btn action-btn--pdf"
+                                @click="handleExportPdf"
+                            >⬇ Recipe Card</button>
+
                             <RouterLink
                                 v-if="recipe.is_owner"
                                 :to="{ name: 'edit-recipe', params: { id: recipe.id } }"
                                 class="action-btn action-btn--edit"
                             >Edit</RouterLink>
+
                             <button
                                 v-if="recipe.is_owner"
                                 class="action-btn action-btn--delete"
@@ -200,12 +209,14 @@ import { useHead } from '@unhead/vue/legacy';
 import { useRecipesStore } from '../stores/recipes';
 import { useAuthStore } from '../stores/auth';
 import { useTimeAgo } from '../composables/useTimeAgo';
+import { usePlan } from '../composables/usePlan';
 import ConfirmModal from '../components/ConfirmModal.vue';
 
-const route   = useRoute();
-const router  = useRouter();
-const recipes = useRecipesStore();
-const auth    = useAuthStore();
+const route         = useRoute();
+const router        = useRouter();
+const recipes       = useRecipesStore();
+const auth          = useAuthStore();
+const { isPremium } = usePlan();
 
 const recipe          = ref(null);
 const showDeleteModal = ref(false);
@@ -275,7 +286,26 @@ async function handleFavourite() {
 }
 async function handleDelete() {
     await recipes.deleteRecipe(recipe.value.id);
+
+    auth.decrementRecipeCount();
+
     router.push({ name: 'home' });
+}
+
+async function handleExportPdf() {
+    const token = localStorage.getItem('token');
+    const res   = await fetch(
+        `${import.meta.env.VITE_API_URL || 'https://api.recipe-sharing-platform.com/api'}/recipes/${recipe.value.id}/export-pdf`,
+        { headers: { Authorization: `Bearer ${token}` } }
+    );
+    if (!res.ok) { alert('Could not generate PDF.'); return; }
+    const blob = await res.blob();
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = recipe.value.title.toLowerCase().replace(/\s+/g, '-') + '-recipe-card.pdf';
+    a.click();
+    URL.revokeObjectURL(url);
 }
 </script>
 
@@ -811,6 +841,16 @@ async function handleDelete() {
 }
 .edit-btn:hover  { transform: translateY(-1px); }
 .edit-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #8b6b1f; }
+
+.action-btn--pdf {
+    background: #c9a84c;
+    color: #3b2a1a;
+    box-shadow: 0 4px 0 #7a6139;
+}
+.action-btn--pdf:hover {
+    background: #e0c070;
+    box-shadow: 0 2px 0 #7a6139;
+}
 
 /* ══════════════════════════════════════
    MOBILE: original single-column layout
