@@ -11,7 +11,7 @@ Free users get up to 10 recipes. Premium subscribers (€4.99/month or €39/yea
 ## Live
 
 - **Frontend:** https://recipe-sharing-platform.com
-- **API:** https://api.recipe-sharing-platform.com
+- **API:** https://api.recipe-sharing-platform.com/api/recipes
 
 ---
 
