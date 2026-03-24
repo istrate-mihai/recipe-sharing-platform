@@ -85,6 +85,25 @@
                                 <input ref="fileInput" type="file" accept="image/jpeg,image/png,image/webp" class="hidden-input" @change="onFileChange" />
                             </div>
 
+                            <!-- Visibility -->
+                            <div class="field">
+                                <label class="field-label">Visibility</label>
+                                <select
+                                    v-model="form.values.value.status"
+                                    class="field-input"
+                                    @change="onStatusChange(form.values.value.status)"
+                                >
+                                    <option value="published">Published</option>
+                                    <option value="draft">Draft</option>
+                                    <option value="private" :disabled="!isPremium">
+                                        Private{{ !isPremium ? ' ★ Premium' : '' }}
+                                    </option>
+                                </select>
+                                <small v-if="!isPremium" class="hint">
+                                    Private recipes are a Premium feature.
+                                </small>
+                            </div>
+
                             <!-- Category + Difficulty (side by side) -->
                             <div class="field-row">
                                 <div class="field">
@@ -200,6 +219,8 @@
                 </div>
             </form>
         </template>
+
+        <PricingModal v-model="showPricing" />
     </div>
 </template>
 
@@ -208,6 +229,8 @@ import { ref, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useRecipesStore } from '../stores/recipes';
 import { useForm } from '../composables/useForm';
+import { usePlan } from '../composables/usePlan';        
+import PricingModal from '../components/PricingModal.vue'; 
 
 const router       = useRouter();
 const route        = useRoute();
@@ -220,12 +243,25 @@ const fileInput           = ref(null);
 const imagePreview        = ref(null);
 const currentImageUrl     = ref(null);
 const removeCurrentImage  = ref(false);
+const { isPremium }       = usePlan()
+const showPricing         = ref(false)
 
 const categories = recipesStore.categories;
 const levels     = recipesStore.levels;
 
 const form = useForm(
-    { title: '', description: '', category: '', difficulty: '', prep_time: '', cook_time: '', steps: [''], ingredients: [{ name: '', amount: '' }], image: null },
+    { 
+        title: '',
+        description: '',
+        category: '',
+        difficulty: '',
+        prep_time: '',
+        cook_time: '',
+        steps: [''],
+        ingredients: [{ name: '', amount: '' }],
+        image: null,
+        status: 'published',
+    },
     {
         title:       v => (v && v.trim().length >= 3)  || 'Title must be at least 3 characters.',
         description: v => (v && v.trim().length >= 20) || 'Description must be at least 20 characters.',
@@ -245,6 +281,7 @@ onMounted(async () => {
             steps:       [...recipe.value.steps],
             ingredients: recipe.value.ingredients.map(i => ({ ...i })),
             image:       null,
+            status:      recipe.value.status ?? 'published',
         };
         currentImageUrl.value = recipe.value.image_url ?? null;
     }
@@ -277,6 +314,12 @@ function addStep()           { form.values.value.steps.push(''); }
 function removeStep(i)       { form.values.value.steps.splice(i, 1); }
 function addIngredient()     { form.values.value.ingredients.push({ name: '', amount: '' }); }
 function removeIngredient(i) { form.values.value.ingredients.splice(i, 1); }
+function onStatusChange(value) {
+    if (value === 'private' && !isPremium.value) {
+        form.values.value.status = 'published'
+        showPricing.value = true
+    }
+}
 
 async function submit() {
     if (!form.validate()) return;
@@ -618,4 +661,6 @@ async function submit() {
     .page-actions       { margin-top: .5rem; }
     .action-btn         { padding: .65rem .5rem; font-size: .95rem; }
 }
+
+.hint { color: #a08060; font-size: .72rem; }
 </style>

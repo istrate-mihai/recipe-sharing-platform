@@ -63,6 +63,25 @@
                             <input ref="fileInput" type="file" accept="image/jpeg,image/png,image/webp" class="hidden-input" @change="onFileChange" />
                         </div>
 
+                        <!-- Visibility -->
+                        <div class="field">
+                            <label class="field-label">Visibility</label>
+                            <select
+                                v-model="form.values.value.status"
+                                class="field-input"
+                                @change="onStatusChange(form.values.value.status)"
+                            >
+                                <option value="published">Published</option>
+                                <option value="draft">Draft</option>
+                                <option value="private" :disabled="!isPremium">
+                                    Private{{ !isPremium ? ' ★ Premium' : '' }}
+                                </option>
+                            </select>
+                            <small v-if="!isPremium" class="hint">
+                                Private recipes are a Premium feature.
+                            </small>
+                        </div>
+
                         <!-- Category + Difficulty (side by side) -->
                         <div class="field-row">
                             <div class="field">
@@ -244,8 +263,8 @@ const apiError     = ref(null);
 const auth         = useAuthStore();
 
 // ── Paywall ───────────────────────────────────────────────────────────────────
-const { atFreeLimit } = usePlan();
-const showPricing     = ref(false);
+const { atFreeLimit, isPremium } = usePlan();
+const showPricing                = ref(false);
 
 const form = useForm(
     {
@@ -258,6 +277,7 @@ const form = useForm(
         cook_time: '',
         steps: [''],
         ingredients: [{ name: '', amount: '' }],
+        status: 'published',
     },
     {
         title:       v => (v && v.trim().length >= 3)  || 'Title must be at least 3 characters.',
@@ -286,6 +306,12 @@ function addRecipeStep()           { form.values.value.steps.push(''); }
 function removeRecipeStep(i)       { form.values.value.steps.splice(i, 1); form.touch('steps'); }
 function addRecipeIngredient()     { form.values.value.ingredients.push({ name: '', amount: '' }); }
 function removeRecipeIngredient(i) { form.values.value.ingredients.splice(i, 1); form.touch('ingredients'); }
+function onStatusChange(value) {
+    if (value === 'private' && !isPremium.value) {
+        form.values.value.status = 'published'
+        showPricing.value = true
+    }
+}
 
 const fileInput    = ref(null);
 const imagePreview = ref(null);
@@ -639,4 +665,6 @@ async function submit() {
     .page-actions       { margin-top: .5rem; }
     .action-btn         { padding: .65rem .5rem; font-size: .95rem; }
 }
+
+.hint { color: #a08060; font-size: .72rem; }
 </style>

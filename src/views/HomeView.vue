@@ -241,9 +241,11 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue';
 import { useRecipesStore } from '../stores/recipes';
+import { useAuthStore } from '../stores/auth';
 import RecipeCard from '../components/RecipeCard.vue';
 
 const recipesStore = useRecipesStore();
+const auth         = useAuthStore();
 
 const PER_SPREAD    = 4;
 const currentSpread = ref(0);
@@ -283,6 +285,13 @@ watch(currentSpread, (spread) => {
     if (spread >= totalSpreads.value - 2) {
         recipesStore.fetchNextPage();
     }
+});
+
+// Refetch when auth state changes (login/logout)
+// so the feed reflects the correct visibility scope
+watch(() => auth.isLoggedIn, () => {
+    currentSpread.value = 0;
+    recipesStore.fetchRecipes(1);
 });
 
 const allRecipes   = computed(() => recipesStore.filtered);

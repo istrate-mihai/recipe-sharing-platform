@@ -39,7 +39,11 @@
             </div>
             <div class="recipe-book-cover recipe-book-cover--right"></div>
         </div>
-        <div v-else-if="!recipe" class="empty">Recipe not found.</div>
+
+        <div v-else-if="!recipe" class="empty">
+            <p>This recipe doesn't exist or isn't available.</p>
+            <button class="back" @click="router.push({ name: 'home' })">← Back to recipes</button>
+        </div>
 
         <!-- ══ DESKTOP: open book layout ══ -->
         <article v-else class="recipe">
@@ -224,7 +228,12 @@ const isLoading       = ref(true);
 const imageModalOpen  = ref(false);
 
 onMounted(async () => {
-    recipe.value    = await recipes.getById(route.params.id);
+    try {
+        recipe.value = await recipes.getById(route.params.id);
+    }
+    catch (err) {
+        recipe.value = null;
+    }
     isLoading.value = false;
 });
 

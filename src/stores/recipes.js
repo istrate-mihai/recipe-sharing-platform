@@ -119,7 +119,12 @@ export const useRecipesStore = defineStore('recipes', () => {
 
             const data      = await recipesApi.store(fd);
             const newRecipe = data.data ?? data;
-            recipes.value.unshift(newRecipe);
+
+            // Only add to public feed cache if published
+            if (newRecipe.status === 'published') {
+                recipes.value.unshift(newRecipe);
+            }
+
             return newRecipe;
         } catch (err) {
             error.value = err.message;
@@ -155,7 +160,12 @@ export const useRecipesStore = defineStore('recipes', () => {
 
             // Update in local cache
             const idx = recipes.value.findIndex(r => r.id === Number(id));
-            if (idx !== -1) recipes.value[idx] = updated;
+            if (updated.status === 'published') {
+                if (idx !== -1) recipes.value[idx] = updated;
+                else recipes.value.unshift(updated); 
+            } else {
+                if (idx !== -1) recipes.value.splice(idx, 1); 
+            }
 
             return updated;
         } catch (err) {

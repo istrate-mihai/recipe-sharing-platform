@@ -84,20 +84,21 @@
                         <RouterLink to="/add-recipe" class="empty-cta">Share your first recipe →</RouterLink>
                     </div>
 
-                    <div v-else class="recipe-list">
-                        <div
-                            v-for="recipe in myRecipes"
-                            :key="recipe.id"
-                            class="recipe-row"
-                        >
-                            <span class="recipe-row-num"></span>
-                            <RouterLink
-                                :to="{ name: 'recipe-detail', params: { id: recipe.id } }"
-                                class="recipe-row-title"
-                            >{{ recipe.title }}</RouterLink>
-                            <span class="recipe-row-likes">♥ {{ recipe.likes_count }}</span>
-                            <button class="del-btn" @click="deleteRecipe(recipe.id)">Delete</button>
-                        </div>
+                    <div
+                        v-for="recipe in myRecipes"
+                        :key="recipe.id"
+                        class="recipe-row"
+                    >
+                        <span class="recipe-row-num"></span>
+                        <RouterLink
+                            :to="{ name: 'recipe-detail', params: { id: recipe.id } }"
+                            class="recipe-row-title"
+                        >{{ recipe.title }}</RouterLink>
+
+                        <span v-if="recipe.status === 'draft'" class="status-badge status-badge--draft">Draft</span>
+                        <span v-if="recipe.status === 'private'" class="status-badge status-badge--private">Private</span>
+                        <span class="recipe-row-likes">♥ {{ recipe.likes_count }}</span>
+                        <button class="del-btn" @click="deleteRecipe(recipe.id)">Delete</button>
                     </div>
 
                     <div class="page-spacer"></div>
@@ -164,7 +165,7 @@
 import { ref, computed, onMounted } from 'vue';
 import { useAuthStore } from '../stores/auth';
 import { useRecipesStore } from '../stores/recipes';
-import { favouritesApi } from '../services/api';
+import { favouritesApi, myRecipesApi } from '../services/api';
 import ConfirmModal from '../components/ConfirmModal.vue';
 
 const auth         = useAuthStore();
@@ -179,17 +180,16 @@ const favourites      = ref([]);
 
 onMounted(async () => {
     isLoading.value = true;
-    const [, favData] = await Promise.all([
-        recipesStore.fetchRecipes(),
+    const [myData, favData] = await Promise.all([
+        myRecipesApi.index(),
         favouritesApi.index(),
     ]);
+    myRecipes.value  = myData.data ?? myData;
     favourites.value = favData.data ?? favData;
     isLoading.value  = false;
 });
 
-const myRecipes  = computed(() =>
-    recipesStore.recipes.filter(r => r.author?.id === auth.user.id)
-);
+const myRecipes = ref([])
 
 const totalLikes = computed(() =>
     myRecipes.value.reduce((sum, r) => sum + (r.likes_count ?? 0), 0)
@@ -202,6 +202,7 @@ function deleteRecipe(id) {
 
 async function confirmDelete() {
     await recipesStore.deleteRecipe(pendingDeleteId.value);
+    myRecipes.value = myRecipes.value.filter(r => r.id !== pendingDeleteId.value);
     pendingDeleteId.value = null;
 }
 </script>
@@ -622,5 +623,25 @@ async function confirmDelete() {
     .profile-card       { flex-direction: column; align-items: center; text-align: center; }
     .profile-stats      { justify-content: center; }
     .recipe-row-title   { font-size: .95rem; }
+}
+
+.status-badge {
+    font-size: .6rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    padding: .15rem .5rem;
+    border-radius: 20px;
+    flex-shrink: 0;
+}
+.status-badge--draft {
+    background: #3a3010;
+    color: #c9a03d;
+    border: 1px solid #c9a03d55;
+}
+.status-badge--private {
+    background: #2a1a3a;
+    color: #b08cd0;
+    border: 1px solid #b08cd055;
 }
 </style>

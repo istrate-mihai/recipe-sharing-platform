@@ -70,3 +70,8 @@ export const profileApi = {
     get:    ()        => request('/profile'),
     update: (payload) => request('/profile', { method: 'POST', body: JSON.stringify(payload) }),
 };
+
+// ── My Recipes (owner — includes drafts & private) ────────────────────────
+export const myRecipesApi = {
+    index: () => request('/my-recipes'),
+};
