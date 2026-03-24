@@ -101,15 +101,32 @@
                         <!-- Ingredients -->
                         <div class="rpage-ingredients">
                             <h3 class="rpage-section-title">Ingredients</h3>
+                            <!-- Serving size calculator — Premium only -->
+                            <div v-if="isPremium && recipe.servings" class="servings-widget">
+                                <span class="servings-label">Servings</span>
+
+                                <div class="servings-controls">
+                                    <button class="servings-btn" @click="decreaseServings" :disabled="currentServings <= 1">−</button>
+                                    <span class="servings-count">{{ currentServings }}</span>
+                                    <button class="servings-btn" @click="increaseServings" :disabled="currentServings >= 100">+</button>
+                                </div>
+
+                                <button
+                                    v-if="currentServings !== recipe.servings"
+                                    class="servings-reset"
+                                    @click="currentServings = recipe.servings"
+                                >reset</button>
+                            </div>
+
                             <ul class="ingredients-list">
                                 <li
-                                    v-for="(ingredient, i) in recipe.ingredients"
+                                    v-for="(ingredient, i) in scaledIngredients"
                                     :key="i"
                                     class="ingredient-row"
                                 >
                                     <span class="ing-name">{{ ingredient.name }}</span>
                                     <span class="ing-dots"></span>
-                                    <span class="ing-amount">{{ ingredient.amount }}</span>
+                                    <span class="ing-amount">{{ ingredient.scaledDisplay }}</span>
                                 </li>
                             </ul>
                         </div>
@@ -226,10 +243,15 @@ const recipe          = ref(null);
 const showDeleteModal = ref(false);
 const isLoading       = ref(true);
 const imageModalOpen  = ref(false);
+const currentServings = ref(4);
 
 onMounted(async () => {
     try {
         recipe.value = await recipes.getById(route.params.id);
+
+        if (recipe.value?.servings) {
+            currentServings.value = recipe.value.servings;
+        }
     }
     catch (err) {
         recipe.value = null;
@@ -270,29 +292,63 @@ useHead(computed(() => {
 }));
 
 const timeAgo       = useTimeAgo(computed(() => recipe.value?.created_at));
+
 const formattedDate = computed(() => {
     if (!recipe.value) return '';
     return new Date(recipe.value.created_at).toLocaleDateString('en-US', {
         year: 'numeric', month: 'long', day: 'numeric',
     });
 });
+
 const CATEGORY_ICONS = {
     breakfast: '🍳', pasta: '🍝', soup: '🍲',
     salad: '🥗', meat: '🥩', dessert: '🍰',
     vegetarian: '🥦', other: '🍽',
 };
+
 const categoryIcon = computed(() => CATEGORY_ICONS[recipe.value?.category] ?? '🍽');
 const paragraphs   = computed(() => recipe.value?.description.split('\n').filter(Boolean) ?? []);
+
+function increaseServings() { if (currentServings.value < 100) currentServings.value++; }
+function decreaseServings() { if (currentServings.value > 1)   currentServings.value--; }
+
+const scaledIngredients = computed(() => {
+    if (!recipe.value?.ingredients) return [];
+
+    const base  = recipe.value.servings || 4;
+    const ratio = currentServings.value / base;
+
+    return recipe.value.ingredients.map(ing => {
+        if (!ing.quantity || !isPremium.value) {
+            // No quantity or free user — show raw stored text
+            const parts = [ing.quantity, ing.unit, ing.name].filter(Boolean);
+            return { ...ing, scaledDisplay: parts.join(' ') || ing.name };
+        }
+
+        const scaled = ing.quantity * ratio;
+
+        // Format: drop decimals if whole, cap to 2 decimal places
+        const formatted = Number.isInteger(scaled)
+            ? String(scaled)
+            : parseFloat(scaled.toFixed(2)).toString();
+
+        const display = [formatted, ing.unit].filter(Boolean).join(' ');
+
+        return { ...ing, scaledDisplay: display };
+    });
+});
 
 async function handleLike() {
     if (!auth.isLoggedIn) return router.push({ name: 'login' });
     const updated = await recipes.likeRecipe(recipe.value.id);
     recipe.value  = { ...recipe.value, is_liked: updated.liked, likes_count: updated.likes_count };
 }
+
 async function handleFavourite() {
     const updated = await recipes.favouriteRecipe(recipe.value.id);
     recipe.value  = { ...recipe.value, is_favourited: updated.favourited };
 }
+
 async function handleDelete() {
     await recipes.deleteRecipe(recipe.value.id);
 
@@ -931,4 +987,76 @@ async function handleExportPdf() {
     .lightbox-img  { border-radius: 8px; }
     .lightbox-close { top: .8rem; right: .8rem; width: 2.4rem; height: 2.4rem; font-size: 1rem; }
 }
+
+/* ══ Serving size widget ══ */
+.servings-widget {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    background: #fdf3de;
+    border: 1px solid #c9a03d44;
+    border-radius: 8px;
+    padding: .45rem .85rem;
+    margin-bottom: .75rem;
+    position: relative;
+    z-index: 1;
+}
+.servings-label {
+    font-family: 'Playfair Display', serif;
+    font-size: .72rem;
+    color: #8b5a28;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+.servings-controls {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+}
+.servings-btn {
+    width: 1.6rem;
+    height: 1.6rem;
+    border-radius: 50%;
+    border: 1px solid #c9a03d88;
+    background: #fef7e9;
+    color: #8b5a28;
+    font-size: 1rem;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background .12s, border-color .12s;
+    padding: 0;
+    flex-shrink: 0;
+}
+.servings-btn:hover:not(:disabled) {
+    background: #c9a03d22;
+    border-color: #c9a03d;
+}
+.servings-btn:disabled { opacity: .35; cursor: not-allowed; }
+.servings-count {
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #2c1e0e;
+    min-width: 1.5rem;
+    text-align: center;
+}
+.servings-reset {
+    background: transparent;
+    border: none;
+    color: #a08060;
+    font-size: .7rem;
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    cursor: pointer;
+    padding: 0;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    transition: color .12s;
+}
+.servings-reset:hover { color: #c9a03d; }
 </style>

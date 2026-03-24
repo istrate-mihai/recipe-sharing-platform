@@ -166,33 +166,44 @@
                         <!-- Ingredients -->
                         <div class="field field--section">
                             <label class="field-label field-label--section">Ingredients</label>
-                            <div
-                                v-for="(ing, index) in form.values.value.ingredients"
-                                :key="index"
-                                class="list-row"
-                            >
-                                <span class="list-num">{{ index + 1 }}</span>
-                                <input
-                                    type="text"
-                                    v-model="ing.name"
-                                    class="field-input list-input"
-                                    placeholder="Name"
-                                    @blur="form.touch('ingredients')"
-                                />
-                                <input
-                                    type="text"
-                                    v-model="ing.amount"
-                                    class="field-input list-input list-input--amount"
-                                    placeholder="Amount"
-                                    @blur="form.touch('ingredients')"
-                                />
-                                <button
-                                    type="button"
-                                    class="list-remove"
-                                    @click="removeRecipeIngredient(index)"
-                                    v-if="form.values.value.ingredients.length > 1"
-                                >✖</button>
-                            </div>
+
+                        <div
+                            v-for="(ing, index) in form.values.value.ingredients"
+                            :key="index"
+                            class="list-row"
+                        >
+                            <span class="list-num">{{ index + 1 }}</span>
+                            <input
+                                type="number"
+                                v-model="ing.quantity"
+                                class="field-input list-input list-input--qty"
+                                placeholder="Qty"
+                                min="0"
+                                step="0.1"
+                                @blur="form.touch('ingredients')"
+                            />
+                            <input
+                                type="text"
+                                v-model="ing.unit"
+                                class="field-input list-input list-input--unit"
+                                placeholder="Unit"
+                                @blur="form.touch('ingredients')"
+                            />
+                            <input
+                                type="text"
+                                v-model="ing.name"
+                                class="field-input list-input"
+                                placeholder="Ingredient"
+                                @blur="form.touch('ingredients')"
+                            />
+                            <button
+                                type="button"
+                                class="list-remove"
+                                @click="removeRecipeIngredient(index)"
+                                v-if="form.values.value.ingredients.length > 1"
+                            >✖</button>
+                        </div>
+
                             <button type="button" class="list-add" @click="addRecipeIngredient">+ Add ingredient</button>
                             <span class="err-msg" v-if="form.errors.value.ingredients && form.touched.value.ingredients">
                                 {{ form.errors.value.ingredients }}
@@ -276,7 +287,8 @@ const form = useForm(
         prep_time: '',
         cook_time: '',
         steps: [''],
-        ingredients: [{ name: '', amount: '' }],
+        servings: 4,
+        ingredients: [{ quantity: '', unit: '', name: '' }],
         status: 'published',
     },
     {
@@ -292,7 +304,6 @@ const form = useForm(
         ingredients: {
             each: (ing, index) => {
                 if (!ing.name || ing.name.trim() === '') return `Ingredient ${index + 1}: name is required.`;
-                if (!ing.amount || ing.amount.toString().trim() === '') return `Ingredient ${index + 1}: amount is required.`;
                 return true;
             },
         },
@@ -304,7 +315,7 @@ const levels     = recipesStore.levels;
 
 function addRecipeStep()           { form.values.value.steps.push(''); }
 function removeRecipeStep(i)       { form.values.value.steps.splice(i, 1); form.touch('steps'); }
-function addRecipeIngredient()     { form.values.value.ingredients.push({ name: '', amount: '' }); }
+function addRecipeIngredient()     { form.values.value.ingredients.push({ quantity: '', unit: '', name: '' }); }
 function removeRecipeIngredient(i) { form.values.value.ingredients.splice(i, 1); form.touch('ingredients'); }
 function onStatusChange(value) {
     if (value === 'private' && !isPremium.value) {
@@ -343,6 +354,7 @@ async function submit() {
             ...form.values.value,
             prep_time: Number(form.values.value.prep_time),
             cook_time: Number(form.values.value.cook_time),
+            servings:  Number(form.values.value.servings) || 4,  
             image: form.values.value.image ?? null,
         });
         auth.incrementRecipeCount();
@@ -502,6 +514,8 @@ async function submit() {
 }
 .list-input { flex: 1; min-width: 0; }
 .list-input--amount { flex: 0 0 90px; }
+.list-input--qty  { flex: 0 0 60px; }
+.list-input--unit { flex: 0 0 70px; }
 .list-remove {
     flex-shrink: 0;
     width: 1.4rem;
@@ -661,7 +675,6 @@ async function submit() {
     .page-spacer        { display: none; }
     .field-input        { font-size: .95rem; padding: .6rem .85rem; }
     .field-textarea     { min-height: 120px; }
-    .list-input--amount { flex: 0 0 100px; }
     .page-actions       { margin-top: .5rem; }
     .action-btn         { padding: .65rem .5rem; font-size: .95rem; }
 }

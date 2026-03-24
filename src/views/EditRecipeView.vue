@@ -156,18 +156,28 @@
                                     class="list-row"
                                 >
                                     <span class="list-num">{{ index + 1 }}</span>
+
+                                    <input
+                                        type="number"
+                                        v-model="ing.quantity"
+                                        class="field-input list-input list-input--qty"
+                                        placeholder="Qty"
+                                        min="0"
+                                        step="0.1"
+                                    />
+                                    <input
+                                        type="text"
+                                        v-model="ing.unit"
+                                        class="field-input list-input list-input--unit"
+                                        placeholder="Unit"
+                                    />
                                     <input
                                         type="text"
                                         v-model="ing.name"
                                         class="field-input list-input"
-                                        placeholder="Name"
+                                        placeholder="Ingredient"
                                     />
-                                    <input
-                                        type="text"
-                                        v-model="ing.amount"
-                                        class="field-input list-input list-input--amount"
-                                        placeholder="Amount"
-                                    />
+
                                     <button
                                         type="button"
                                         class="list-remove"
@@ -258,7 +268,8 @@ const form = useForm(
         prep_time: '',
         cook_time: '',
         steps: [''],
-        ingredients: [{ name: '', amount: '' }],
+        servings: 4,
+        ingredients: [{ quantity: '', unit: '', name: '' }],
         image: null,
         status: 'published',
     },
@@ -279,7 +290,14 @@ onMounted(async () => {
             prep_time:   recipe.value.prep_time,
             cook_time:   recipe.value.cook_time,
             steps:       [...recipe.value.steps],
-            ingredients: recipe.value.ingredients.map(i => ({ ...i })),
+            ingredients: recipe.value.ingredients.length
+                ? recipe.value.ingredients.map(i => ({
+                    quantity: i.quantity ?? '',
+                    unit:     i.unit     ?? '',
+                    name:     i.name     ?? '',
+                }))
+                : [{ quantity: '', unit: '', name: '' }],
+            servings: recipe.value.servings ?? 4,
             image:       null,
             status:      recipe.value.status ?? 'published',
         };
@@ -312,7 +330,7 @@ function clearCurrentImage() {
 
 function addStep()           { form.values.value.steps.push(''); }
 function removeStep(i)       { form.values.value.steps.splice(i, 1); }
-function addIngredient()     { form.values.value.ingredients.push({ name: '', amount: '' }); }
+function addIngredient()     { form.values.value.ingredients.push({ quantity: '', unit: '', name: '' }); }
 function removeIngredient(i) { form.values.value.ingredients.splice(i, 1); }
 function onStatusChange(value) {
     if (value === 'private' && !isPremium.value) {
@@ -329,10 +347,13 @@ async function submit() {
             ...form.values.value,
             prep_time: Number(form.values.value.prep_time),
             cook_time: Number(form.values.value.cook_time),
+            servings:  Number(form.values.value.servings) || 4,
         };
+
         if (removeCurrentImage.value && !payload.image) {
             payload.remove_image = '1';
         }
+
         const updated = await recipesStore.updateRecipe(route.params.id, payload);
         router.push({ name: 'recipe-detail', params: { id: updated.id } });
     } catch (err) {
@@ -490,7 +511,8 @@ async function submit() {
     box-shadow: 0 2px 0 #7a5a00, inset 0 1px 1px rgba(255,255,255,.3);
 }
 .list-input { flex: 1; min-width: 0; }
-.list-input--amount { flex: 0 0 90px; }
+.list-input--qty  { flex: 0 0 60px; }
+.list-input--unit { flex: 0 0 70px; }
 .list-remove {
     flex-shrink: 0;
     width: 1.4rem;
@@ -657,7 +679,6 @@ async function submit() {
     .page-spacer        { display: none; }
     .field-input        { font-size: .95rem; padding: .6rem .85rem; }
     .field-textarea     { min-height: 120px; }
-    .list-input--amount { flex: 0 0 100px; }
     .page-actions       { margin-top: .5rem; }
     .action-btn         { padding: .65rem .5rem; font-size: .95rem; }
 }
