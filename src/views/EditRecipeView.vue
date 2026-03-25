@@ -131,6 +131,19 @@
                                     <input v-model="form.values.value.cook_time" type="number" min="0" class="field-input" placeholder="e.g. 30" />
                                 </div>
                             </div>
+
+                            <!-- Servings -->
+                            <div class="field">
+                                <label class="field-label">Servings <span class="optional">(optional)</span></label>
+                                <input
+                                    v-model="form.values.value.servings"
+                                    type="number"
+                                    min="1"
+                                    max="100"
+                                    class="field-input"
+                                    placeholder="e.g. 4"
+                                />
+                            </div>
                         </div>
 
                         <!-- ── Spine ── -->
