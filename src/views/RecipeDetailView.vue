@@ -130,6 +130,71 @@
                                 </li>
                             </ul>
                         </div>
+
+                        <!-- Nutritional Info Card -->
+                        <template v-if="recipe.nutritional_info">
+                            <!-- Premium viewer: full card -->
+                            <div v-if="auth.user && isPremium" class="nutrition-card">
+                                <h3 class="nutrition-card__title">📊 Nutritional Info <span>per serving</span></h3>
+
+                                <div class="nutrition-card__grid">
+                                    <div class="nutrition-card__item">
+                                        <span class="nutrition-card__value">{{ recipe.nutritional_info.calories }}</span>
+                                        <span class="nutrition-card__label">kcal</span>
+                                    </div>
+
+                                    <div class="nutrition-card__item">
+                                        <span class="nutrition-card__value">{{ recipe.nutritional_info.protein }}g</span>
+                                        <span class="nutrition-card__label">Protein</span>
+                                    </div>
+
+                                    <div class="nutrition-card__item">
+                                        <span class="nutrition-card__value">{{ recipe.nutritional_info.carbs }}g</span>
+                                        <span class="nutrition-card__label">Carbs</span>
+                                    </div>
+
+                                    <div class="nutrition-card__item">
+                                        <span class="nutrition-card__value">{{ recipe.nutritional_info.fat }}g</span>
+                                        <span class="nutrition-card__label">Fat</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Free viewer: blurred tease -->
+                            <div v-else class="nutrition-card nutrition-card--locked">
+                                <h3 class="nutrition-card__title">📊 Nutritional Info <span>per serving</span></h3>
+
+                                <div class="nutrition-card__grid nutrition-card__grid--blurred">
+                                    <div class="nutrition-card__item">
+                                        <span class="nutrition-card__value">320</span>
+                                        <span class="nutrition-card__label">kcal</span>
+                                    </div>
+
+                                    <div class="nutrition-card__item">
+                                        <span class="nutrition-card__value">24g</span>
+                                        <span class="nutrition-card__label">Protein</span>
+                                    </div>
+
+                                    <div class="nutrition-card__item">
+                                        <span class="nutrition-card__value">40g</span>
+                                        <span class="nutrition-card__label">Carbs</span>
+                                    </div>
+
+                                    <div class="nutrition-card__item">
+                                        <span class="nutrition-card__value">12g</span>
+                                        <span class="nutrition-card__label">Fat</span>
+                                    </div>
+                                </div>
+
+                                <div class="nutrition-card__lock">
+                                    <span class="nutrition-card__lock-icon">🔒</span>
+
+                                    <p>Unlock nutritional info with <strong>Premium</strong></p>
+
+                                    <router-link to="/premium" class="nutrition-card__cta">Upgrade now</router-link>
+                                </div>
+                            </div>
+                        </template>
                     </div>
 
                     <!-- ── Spine ── -->
@@ -1059,4 +1124,107 @@ async function handleExportPdf() {
     transition: color .12s;
 }
 .servings-reset:hover { color: #c9a03d; }
+
+.nutrition-card {
+  margin-top: 1.5rem;
+  border: 1px solid #c8b89a;
+  border-radius: 6px;
+  padding: 1rem;
+  background: #fdfaf6;
+  position: relative;
+}
+
+.nutrition-card__title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #5c3d1e;
+  margin-bottom: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.nutrition-card__title span {
+  font-weight: 400;
+  font-size: 0.78rem;
+  color: #8a7560;
+  text-transform: none;
+  letter-spacing: 0;
+  margin-left: 0.4rem;
+}
+
+.nutrition-card__grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+  text-align: center;
+}
+
+.nutrition-card__grid--blurred {
+  filter: blur(5px);
+  user-select: none;
+  pointer-events: none;
+}
+
+.nutrition-card__item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.nutrition-card__value {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #3b2a1a;
+}
+
+.nutrition-card__label {
+  font-size: 0.72rem;
+  color: #8a7560;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.nutrition-card--locked {
+  overflow: hidden;
+}
+
+.nutrition-card__lock {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(253, 250, 246, 0.6);
+  backdrop-filter: blur(2px);
+  gap: 0.4rem;
+  padding: 1rem;
+}
+
+.nutrition-card__lock-icon {
+  font-size: 1.4rem;
+}
+
+.nutrition-card__lock p {
+  font-size: 0.82rem;
+  color: #5c3d1e;
+  text-align: center;
+  margin: 0;
+}
+
+.nutrition-card__cta {
+  margin-top: 0.25rem;
+  padding: 0.35rem 0.9rem;
+  background: #5c3d1e;
+  color: #fff;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+
+.nutrition-card__cta:hover {
+  background: #3b2a1a;
+}
 </style>

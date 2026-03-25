@@ -180,47 +180,85 @@
                         <div class="field field--section">
                             <label class="field-label field-label--section">Ingredients</label>
 
-                        <div
-                            v-for="(ing, index) in form.values.value.ingredients"
-                            :key="index"
-                            class="list-row"
-                        >
-                            <span class="list-num">{{ index + 1 }}</span>
-                            <input
-                                type="number"
-                                v-model="ing.quantity"
-                                class="field-input list-input list-input--qty"
-                                placeholder="Qty"
-                                min="0"
-                                step="0.1"
-                                @blur="form.touch('ingredients')"
-                            />
-                            <input
-                                type="text"
-                                v-model="ing.unit"
-                                class="field-input list-input list-input--unit"
-                                placeholder="Unit"
-                                @blur="form.touch('ingredients')"
-                            />
-                            <input
-                                type="text"
-                                v-model="ing.name"
-                                class="field-input list-input"
-                                placeholder="Ingredient"
-                                @blur="form.touch('ingredients')"
-                            />
-                            <button
-                                type="button"
-                                class="list-remove"
-                                @click="removeRecipeIngredient(index)"
-                                v-if="form.values.value.ingredients.length > 1"
-                            >✖</button>
-                        </div>
+                            <div
+                                v-for="(ing, index) in form.values.value.ingredients"
+                                :key="index"
+                                class="list-row"
+                            >
+                                <span class="list-num">{{ index + 1 }}</span>
+                                <input
+                                    type="number"
+                                    v-model="ing.quantity"
+                                    class="field-input list-input list-input--qty"
+                                    placeholder="Qty"
+                                    min="0"
+                                    step="0.1"
+                                    @blur="form.touch('ingredients')"
+                                />
+                                <input
+                                    type="text"
+                                    v-model="ing.unit"
+                                    class="field-input list-input list-input--unit"
+                                    placeholder="Unit"
+                                    @blur="form.touch('ingredients')"
+                                />
+                                <input
+                                    type="text"
+                                    v-model="ing.name"
+                                    class="field-input list-input"
+                                    placeholder="Ingredient"
+                                    @blur="form.touch('ingredients')"
+                                />
+                                <button
+                                    type="button"
+                                    class="list-remove"
+                                    @click="removeRecipeIngredient(index)"
+                                    v-if="form.values.value.ingredients.length > 1"
+                                >✖</button>
+                            </div>
 
                             <button type="button" class="list-add" @click="addRecipeIngredient">+ Add ingredient</button>
                             <span class="err-msg" v-if="form.errors.value.ingredients && form.touched.value.ingredients">
                                 {{ form.errors.value.ingredients }}
                             </span>
+                        </div>
+
+                        <!-- Nutritional Info - Premium Only -->
+                        <div class="nutrition-panel" v-if="auth.user && isPremium">
+                            <button
+                                type="button"
+                                class="nutrition-toggle"
+                                @click="showNutrition = !showNutrition"
+                            >
+                                <span>🥗 Nutritional Info</span>
+                                <span class="nutrition-toggle__icon">{{ showNutrition ? '▲' : '▼' }}</span>
+                            </button>
+
+                            <div v-if="showNutrition" class="nutrition-fields">
+                                <p class="nutrition-fields__hint">Per serving — optional. Visible to Premium members only.</p>
+
+                                <div class="nutrition-grid">
+                                    <div class="nutrition-grid__item">
+                                        <label>Calories (kcal)</label>
+                                        <input type="number" min="0" v-model.number="form.values.value.nutritional_info.calories" placeholder="e.g. 320" />
+                                    </div>
+
+                                    <div class="nutrition-grid__item">
+                                        <label>Protein (g)</label>
+                                        <input type="number" min="0" step="0.1" v-model.number="form.values.value.nutritional_info.protein" placeholder="e.g. 24" />
+                                    </div>
+
+                                    <div class="nutrition-grid__item">
+                                        <label>Carbs (g)</label>
+                                        <input type="number" min="0" step="0.1" v-model.number="form.values.value.nutritional_info.carbs" placeholder="e.g. 40" />
+                                    </div>
+
+                                    <div class="nutrition-grid__item">
+                                        <label>Fat (g)</label>
+                                        <input type="number" min="0" step="0.1" v-model.number="form.values.value.nutritional_info.fat" placeholder="e.g. 12" />
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Steps -->
@@ -281,10 +319,11 @@ import { usePlan } from '../composables/usePlan';
 import { useAuthStore } from '../stores/auth';
 import PricingModal from '../components/PricingModal.vue';
 
-const router       = useRouter();
-const recipesStore = useRecipesStore();
-const apiError     = ref(null);
-const auth         = useAuthStore();
+const router        = useRouter();
+const recipesStore  = useRecipesStore();
+const apiError      = ref(null);
+const auth          = useAuthStore();
+const showNutrition = ref(false);
 
 // ── Paywall ───────────────────────────────────────────────────────────────────
 const { atFreeLimit, isPremium } = usePlan();
@@ -303,6 +342,12 @@ const form = useForm(
         servings: 4,
         ingredients: [{ quantity: '', unit: '', name: '' }],
         status: 'published',
+        nutritional_info: {
+            calories: null,
+            protein: null,
+            carbs: null,
+            fat: null,
+        },
     },
     {
         title:       v => (v && v.trim().length >= 3)  || 'Title must be at least 3 characters.',
@@ -341,16 +386,19 @@ const fileInput    = ref(null);
 const imagePreview = ref(null);
 
 function triggerFileInput() { fileInput.value.click(); }
+
 function onFileChange(e) {
     const file = e.target.files[0];
     if (!file) return;
+
     form.values.value.image = file;
     imagePreview.value = URL.createObjectURL(file);
 }
+
 function removeImage() {
     form.values.value.image = null;
-    imagePreview.value = null;
-    fileInput.value.value = '';
+    imagePreview.value      = null;
+    fileInput.value.value   = '';
 }
 
 async function submit() {
@@ -365,17 +413,24 @@ async function submit() {
     try {
         const newRecipe = await recipesStore.createRecipe({
             ...form.values.value,
-            prep_time: Number(form.values.value.prep_time),
-            cook_time: Number(form.values.value.cook_time),
-            servings:  Number(form.values.value.servings) || 4,  
-            image: form.values.value.image ?? null,
+            prep_time:        Number(form.values.value.prep_time),
+            cook_time:        Number(form.values.value.cook_time),
+            servings:         Number(form.values.value.servings) || 4,  
+            image:            form.values.value.image ?? null,
+            nutritional_info: JSON.stringify(form.values.value.nutritional_info),
+
         });
+
         auth.incrementRecipeCount();
+
         router.push({ name: 'recipe-detail', params: { id: newRecipe.id } });
     } catch (err) {
         apiError.value = err.message;
     }
 }
+
+console.log(auth);
+
 </script>
 
 <style scoped>
@@ -666,6 +721,68 @@ async function submit() {
 .action-btn--submit:hover:not(:disabled)  { transform: translateY(-1px); box-shadow: 0 4px 0 #7a5a00; }
 .action-btn--submit:active:not(:disabled) { transform: translateY(2px); box-shadow: none; }
 .action-btn--submit:disabled { opacity: .5; cursor: not-allowed; }
+
+.nutrition-panel {
+  margin-top: 1.5rem;
+  border: 1px solid #c8b89a;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.nutrition-toggle {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background: #f5efe6;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #5c3d1e;
+}
+
+.nutrition-toggle:hover {
+  background: #ede3d5;
+}
+
+.nutrition-fields {
+  padding: 1rem;
+  background: #fdfaf6;
+}
+
+.nutrition-fields__hint {
+  font-size: 0.8rem;
+  color: #8a7560;
+  margin-bottom: 0.75rem;
+  font-style: italic;
+}
+
+.nutrition-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.nutrition-grid__item label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #5c3d1e;
+  margin-bottom: 0.25rem;
+}
+
+.nutrition-grid__item input {
+  width: 100%;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid #c8b89a;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  background: #fff;
+  box-sizing: border-box;
+}
 
 /* ══ Mobile: unwrap book ══ */
 @media (max-width: 768px) {

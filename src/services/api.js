@@ -52,12 +52,12 @@ export const recipesApi = {
         const query = new URLSearchParams(params).toString();
         return request(`/recipes${query ? '?' + query : ''}`);
     },
-    show:    (id)      => request(`/recipes/${id}`),
-    store:   (payload) => request('/recipes',    { method: 'POST', body: payload }), // payload must be FormData
-    destroy: (id)      => request(`/recipes/${id}`, { method: 'DELETE' }),
+    show:    (id)          => request(`/recipes/${id}`),
+    store:   (payload)     => request('/recipes',    { method: 'POST', body: payload }), 
+    destroy: (id)          => request(`/recipes/${id}`, { method: 'DELETE' }),
     update:  (id, payload) => request(`/recipes/${id}`, { method: 'POST', body: payload }),
-    like:    (id)      => request(`/recipes/${id}/like`,      { method: 'POST' }),
-    favourite: (id)    => request(`/recipes/${id}/favourite`, { method: 'POST' }),
+    like:    (id)          => request(`/recipes/${id}/like`,      { method: 'POST' }),
+    favourite: (id)        => request(`/recipes/${id}/favourite`, { method: 'POST' }),
 };
 
 // ── Favourites ────────────────────────────────────────────────────────────

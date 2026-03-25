@@ -201,6 +201,44 @@
                                 <button type="button" class="list-add" @click="addIngredient">+ Add ingredient</button>
                             </div>
 
+                            <!-- Nutritional Info - Premium Only -->
+                            <div class="nutrition-panel" v-if="auth.user && isPremium">
+                                <button
+                                    type="button"
+                                    class="nutrition-toggle"
+                                    @click="showNutrition = !showNutrition"
+                                >
+                                    <span>🥗 Nutritional Info</span>
+                                    <span class="nutrition-toggle__icon">{{ showNutrition ? '▲' : '▼' }}</span>
+                                </button>
+
+                                <div v-if="showNutrition" class="nutrition-fields">
+                                    <p class="nutrition-fields__hint">Per serving — optional. Visible to Premium members only.</p>
+
+                                    <div class="nutrition-grid">
+                                        <div class="nutrition-grid__item">
+                                            <label>Calories (kcal)</label>
+                                            <input type="number" min="0" v-model.number="form.values.value.nutritional_info.calories" placeholder="e.g. 320" />
+                                        </div>
+
+                                        <div class="nutrition-grid__item">
+                                            <label>Protein (g)</label>
+                                            <input type="number" min="0" step="0.1" v-model.number="form.values.value.nutritional_info.protein" placeholder="e.g. 24" />
+                                        </div>
+
+                                        <div class="nutrition-grid__item">
+                                            <label>Carbs (g)</label>
+                                            <input type="number" min="0" step="0.1" v-model.number="form.values.value.nutritional_info.carbs" placeholder="e.g. 40" />
+                                        </div>
+
+                                        <div class="nutrition-grid__item">
+                                            <label>Fat (g)</label>
+                                            <input type="number" min="0" step="0.1" v-model.number="form.values.value.nutritional_info.fat" placeholder="e.g. 12" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <!-- Steps -->
                             <div class="field field--section field--grow">
                                 <label class="field-label field-label--section">Steps</label>
@@ -248,9 +286,10 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, toRaw } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useRecipesStore } from '../stores/recipes';
+import { useAuthStore } from '../stores/auth';
 import { useForm } from '../composables/useForm';
 import { usePlan } from '../composables/usePlan';        
 import PricingModal from '../components/PricingModal.vue'; 
@@ -258,6 +297,7 @@ import PricingModal from '../components/PricingModal.vue';
 const router       = useRouter();
 const route        = useRoute();
 const recipesStore = useRecipesStore();
+const auth         = useAuthStore();
 
 const recipe              = ref(null);
 const isLoading           = ref(true);
@@ -266,8 +306,9 @@ const fileInput           = ref(null);
 const imagePreview        = ref(null);
 const currentImageUrl     = ref(null);
 const removeCurrentImage  = ref(false);
-const { isPremium }       = usePlan()
-const showPricing         = ref(false)
+const { isPremium }       = usePlan();
+const showPricing         = ref(false);
+const showNutrition       = ref(false);
 
 const categories = recipesStore.categories;
 const levels     = recipesStore.levels;
@@ -285,6 +326,12 @@ const form = useForm(
         ingredients: [{ quantity: '', unit: '', name: '' }],
         image: null,
         status: 'published',
+        nutritional_info: {
+            calories: null,
+            protein: null,
+            carbs: null,
+            fat: null,
+        },
     },
     {
         title:       v => (v && v.trim().length >= 3)  || 'Title must be at least 3 characters.',
@@ -296,26 +343,40 @@ onMounted(async () => {
     recipe.value = await recipesStore.getById(route.params.id);
     if (recipe.value) {
         form.values.value = {
-            title:       recipe.value.title,
-            description: recipe.value.description,
-            category:    recipe.value.category,
-            difficulty:  recipe.value.difficulty,
-            prep_time:   recipe.value.prep_time,
-            cook_time:   recipe.value.cook_time,
-            steps:       [...recipe.value.steps],
-            ingredients: recipe.value.ingredients.length
-                ? recipe.value.ingredients.map(i => ({
-                    quantity: i.quantity ?? '',
-                    unit:     i.unit     ?? '',
-                    name:     i.name     ?? '',
-                }))
-                : [{ quantity: '', unit: '', name: '' }],
-            servings: recipe.value.servings ?? 4,
-            image:       null,
-            status:      recipe.value.status ?? 'published',
+            title:                  recipe.value.title,
+            description:            recipe.value.description,
+            category:               recipe.value.category,
+            difficulty:             recipe.value.difficulty,
+            prep_time:              recipe.value.prep_time,
+            cook_time:              recipe.value.cook_time,
+            steps:                  [...recipe.value.steps],
+
+            ingredients:            recipe.value.ingredients.length
+                                        ? recipe.value.ingredients.map(i => ({
+                                            quantity: i.quantity ?? '',
+                                            unit:     i.unit     ?? '',
+                                            name:     i.name     ?? '',
+                                        }))
+                                        : [{ quantity: '', unit: '', name: '' }],
+
+            servings:               recipe.value.servings ?? 4,
+            image:                  null,
+            status:                 recipe.value.status ?? 'published',
+
+            nutritional_info:       recipe.value.nutritional_info ?? {
+                                        calories: null,
+                                        protein: null,
+                                        carbs: null,
+                                        fat: null,
+                                    },
         };
         currentImageUrl.value = recipe.value.image_url ?? null;
+
+        if (recipe.value.nutritional_info) {
+            showNutrition.value = true;
+        }
     }
+
     isLoading.value = false;
 });
 
@@ -355,21 +416,27 @@ function onStatusChange(value) {
 async function submit() {
     if (!form.validate()) return;
     apiError.value = null;
+
     try {
         const payload = {
             ...form.values.value,
-            prep_time: Number(form.values.value.prep_time),
-            cook_time: Number(form.values.value.cook_time),
-            servings:  Number(form.values.value.servings) || 4,
+            prep_time:        Number(form.values.value.prep_time),
+            cook_time:        Number(form.values.value.cook_time),
+            servings:         Number(form.values.value.servings) || 4,
+            nutritional_info: JSON.stringify(form.values.value.nutritional_info),
         };
 
         if (removeCurrentImage.value && !payload.image) {
             payload.remove_image = '1';
         }
 
+        console.log(payload);
+
         const updated = await recipesStore.updateRecipe(route.params.id, payload);
+
         router.push({ name: 'recipe-detail', params: { id: updated.id } });
-    } catch (err) {
+    }
+    catch (err) {
         apiError.value = err.message;
     }
 }
@@ -697,4 +764,66 @@ async function submit() {
 }
 
 .hint { color: #a08060; font-size: .72rem; }
+
+.nutrition-panel {
+  margin-top: 1.5rem;
+  border: 1px solid #c8b89a;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.nutrition-toggle {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background: #f5efe6;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #5c3d1e;
+}
+
+.nutrition-toggle:hover {
+  background: #ede3d5;
+}
+
+.nutrition-fields {
+  padding: 1rem;
+  background: #fdfaf6;
+}
+
+.nutrition-fields__hint {
+  font-size: 0.8rem;
+  color: #8a7560;
+  margin-bottom: 0.75rem;
+  font-style: italic;
+}
+
+.nutrition-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.nutrition-grid__item label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #5c3d1e;
+  margin-bottom: 0.25rem;
+}
+
+.nutrition-grid__item input {
+  width: 100%;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid #c8b89a;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  background: #fff;
+  box-sizing: border-box;
+}
 </style>
