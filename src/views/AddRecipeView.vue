@@ -66,7 +66,7 @@
                                     <button type="button" class="image-upload__remove" @click="removeImage(index)">✕</button>
                                 </div>
 
-                                <label v-if="form.images.length < 5" class="image-upload__add">
+                                <label v-if="form.values.value.images.length < 5" class="image-upload__add">
                                     <input
                                         type="file"
                                         accept="image/*"
@@ -75,7 +75,7 @@
                                         hidden
                                     />
                                     <span>+</span>
-                                    <small>{{ form.images.length === 0 ? 'Add photos' : 'Add more' }}</small>
+                                    <small>{{ form.values.value.length === 0 ? 'Add photos' : 'Add more' }}</small>
                                 </label>
                             </div>
                             <p class="image-upload__hint">First image is the cover. Drag to reorder.</p>
@@ -747,7 +747,6 @@ function onDrop(index) {
 
 .nutrition-panel {
   margin-top: 1.5rem;
-  border: 1px solid #c8b89a;
   border-radius: 6px;
   overflow: hidden;
 }
@@ -765,6 +764,7 @@ function onDrop(index) {
   font-size: 0.95rem;
   font-weight: 600;
   color: #5c3d1e;
+  border: 1px solid #c8b89a;
 }
 
 .nutrition-toggle:hover {
