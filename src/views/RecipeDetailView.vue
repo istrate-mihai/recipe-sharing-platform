@@ -189,9 +189,24 @@
                                 <div class="nutrition-card__lock">
                                     <span class="nutrition-card__lock-icon">🔒</span>
 
-                                    <p>Unlock nutritional info with <strong>Premium</strong></p>
+                                    <!-- Guest -->
+                                    <template v-if="!auth.user">
+                                        <p>Log in to unlock <strong>Premium</strong> features</p>
+                                        <router-link
+                                            :to="{ path: '/login', query: { redirect: $route.fullPath } }"
+                                            class="nutrition-card__cta"
+                                        >
+                                            Log in
+                                        </router-link>
+                                    </template>
 
-                                    <router-link to="/premium" class="nutrition-card__cta">Upgrade now</router-link>
+                                    <!-- Logged in, not Premium -->
+                                    <template v-else>
+                                        <p>Unlock nutritional info with <strong>Premium</strong></p>
+                                        <button @click="showPricing = true" class="nutrition-card__cta">
+                                            Upgrade now
+                                        </button>
+                                    </template>
                                 </div>
                             </div>
                         </template>
@@ -284,6 +299,8 @@
                 confirmLabel="Delete it"
                 @confirm="handleDelete"
             />
+
+            <PricingModal v-model="showPricing" />
         </article>
     </div>
 </template>
@@ -297,6 +314,7 @@ import { useAuthStore } from '../stores/auth';
 import { useTimeAgo } from '../composables/useTimeAgo';
 import { usePlan } from '../composables/usePlan';
 import ConfirmModal from '../components/ConfirmModal.vue';
+import PricingModal from '../components/PricingModal.vue';
 
 const route         = useRoute();
 const router        = useRouter();
@@ -309,6 +327,7 @@ const showDeleteModal = ref(false);
 const isLoading       = ref(true);
 const imageModalOpen  = ref(false);
 const currentServings = ref(4);
+const showPricing     = ref(false);
 
 onMounted(async () => {
     try {
