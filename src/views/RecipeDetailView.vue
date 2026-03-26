@@ -61,24 +61,40 @@
                             <span class="rpage-num">p. 1</span>
                         </div>
 
-                        <!-- Image: top half -->
+                        <!-- Image: primary cover -->
                         <div
                             class="rpage-image-wrap"
-                            @click="imageModalOpen = true"
-                            :class="{ clickable: recipe.image_url }"
+                            :class="{ clickable: lightboxImages.length }"
+                            @click="lightboxImages.length && openLightbox(0)"
                         >
                             <img
-                                v-if="recipe.image_url"
-                                :src="recipe.image_url"
+                                v-if="lightboxImages.length"
+                                :src="lightboxImages[0]"
                                 :alt="recipe.title"
                                 class="rpage-image"
                                 fetchpriority="high"
-                                width="600" height="400"
+                                width="600"
+                                height="400"
                             />
+
                             <div v-else class="rpage-image-ph">
                                 <span>{{ categoryIcon }}</span>
                             </div>
-                            <div v-if="recipe.image_url" class="zoom-hint">🔍 click to expand</div>
+
+                            <div v-if="lightboxImages.length" class="zoom-hint">🔍 click to expand</div>
+
+                            <!-- Thumbnail strip for extra images -->
+                            <div v-if="lightboxImages.length > 1" class="rpage-thumbnails">
+                                <img
+                                    v-for="(url, i) in lightboxImages"
+                                    :key="i"
+                                    :src="url"
+                                    :alt="`Photo ${i + 1}`"
+                                    class="rpage-thumb"
+                                    :class="{ 'rpage-thumb--active': i === 0 }"
+                                    @click.stop="openLightbox(i)"
+                                />
+                            </div>
                         </div>
 
                         <!-- Author + title under image -->
@@ -288,7 +304,34 @@
             <Teleport to="body">
                 <div v-if="imageModalOpen" class="lightbox" @click.self="imageModalOpen = false">
                     <button class="lightbox-close" @click="imageModalOpen = false">✕</button>
-                    <img :src="recipe.image_url" :alt="recipe.title" class="lightbox-img" />
+
+                    <button
+                        v-if="lightboxImages.length > 1"
+                        class="lightbox-nav lightbox-nav--prev"
+                        @click="lightboxPrev"
+                    >‹</button>
+
+                    <img
+                        :src="lightboxImages[lightboxIndex]"
+                        :alt="recipe.title"
+                        class="lightbox-img"
+                    />
+
+                    <button
+                        v-if="lightboxImages.length > 1"
+                        class="lightbox-nav lightbox-nav--next"
+                        @click="lightboxNext"
+                    >›</button>
+
+                    <div v-if="lightboxImages.length > 1" class="lightbox-dots">
+                        <span
+                            v-for="(_, i) in lightboxImages"
+                            :key="i"
+                            class="lightbox-dot"
+                            :class="{ 'lightbox-dot--active': i === lightboxIndex }"
+                            @click="lightboxIndex = i"
+                        />
+                    </div>
                 </div>
             </Teleport>
 
@@ -328,6 +371,7 @@ const isLoading       = ref(true);
 const imageModalOpen  = ref(false);
 const currentServings = ref(4);
 const showPricing     = ref(false);
+const lightboxIndex   = ref(0);
 
 onMounted(async () => {
     try {
@@ -343,7 +387,14 @@ onMounted(async () => {
     isLoading.value = false;
 });
 
-function onKeydown(e) { if (e.key === 'Escape') imageModalOpen.value = false; }
+function onKeydown(e) {
+    if (!imageModalOpen.value) return;
+
+    if (e.key === 'Escape')     imageModalOpen.value = false;
+    if (e.key === 'ArrowRight') lightboxNext();
+    if (e.key === 'ArrowLeft')  lightboxPrev();
+}
+
 onMounted(() => window.addEventListener('keydown', onKeydown));
 onUnmounted(() => window.removeEventListener('keydown', onKeydown));
 
@@ -351,12 +402,18 @@ watch(imageModalOpen, (val) => { document.body.style.overflow = val ? 'hidden' :
 
 useHead(computed(() => {
     if (!recipe.value) return { title: 'Recipe | Recipe Sharing Platform' };
+
     const title       = `${recipe.value.title} | Recipe Sharing Platform`;
     const description = recipe.value.description
         ? recipe.value.description.slice(0, 155).replace(/\n/g, ' ') + '…'
         : `A delicious ${recipe.value.category} recipe shared on Recipe Sharing Platform.`;
-    const image = recipe.value.image_url ?? 'https://recipe-sharing-platform.com/og-default.jpg';
+
+    const image = recipe.value.images?.find(i => i.is_primary)?.url
+        ?? recipe.value.image_url
+        ?? 'https://recipe-sharing-platform.com/og-default.jpg';
+
     const url   = `https://recipe-sharing-platform.com/recipe/${recipe.value.id}`;
+
     return {
         title,
         meta: [
@@ -421,6 +478,29 @@ const scaledIngredients = computed(() => {
         return { ...ing, scaledDisplay: display };
     });
 });
+
+const lightboxImages = computed(() => {
+    if (!recipe.value) return [];
+
+    if (recipe.value.images?.length) {
+        return recipe.value.images.map(img => img.url ?? img.path);
+    }
+
+    return recipe.value.image_url ? [recipe.value.image_url] : [];
+});
+
+function openLightbox(index = 0) {
+    lightboxIndex.value  = index;
+    imageModalOpen.value = true;
+}
+
+function lightboxNext() {
+    lightboxIndex.value = (lightboxIndex.value + 1) % lightboxImages.value.length;
+}
+
+function lightboxPrev() {
+    lightboxIndex.value = (lightboxIndex.value - 1 + lightboxImages.value.length) % lightboxImages.value.length;
+}
 
 async function handleLike() {
     if (!auth.isLoggedIn) return router.push({ name: 'login' });
@@ -1000,6 +1080,79 @@ async function handleExportPdf() {
     background: #e0c070;
     box-shadow: 0 2px 0 #7a6139;
 }
+
+.rpage-thumbnails {
+    position: absolute;
+    bottom: 0.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 0.4rem;
+    z-index: 2;
+}
+
+.rpage-thumb {
+    width: 48px;
+    height: 36px;
+    object-fit: cover;
+    border-radius: 4px;
+    border: 2px solid transparent;
+    cursor: pointer;
+    opacity: 0.75;
+    transition: opacity 0.15s, border-color 0.15s;
+}
+
+.rpage-thumb:hover,
+.rpage-thumb--active {
+    opacity: 1;
+    border-color: #c9a84c;
+}
+
+.lightbox-nav {
+    position: fixed;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255,255,255,0.15);
+    border: none;
+    color: #fff;
+    font-size: 2.5rem;
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s;
+    z-index: 1002;
+    line-height: 1;
+    padding: 0;
+}
+
+.lightbox-nav:hover { background: rgba(255,255,255,0.3); }
+.lightbox-nav--prev { left: 1.5rem; }
+.lightbox-nav--next { right: 1.5rem; }
+
+.lightbox-dots {
+    position: fixed;
+    bottom: 1.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 0.5rem;
+    z-index: 1002;
+}
+
+.lightbox-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.4);
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.lightbox-dot--active { background: #fff; }
 
 /* ══════════════════════════════════════
    MOBILE: original single-column layout

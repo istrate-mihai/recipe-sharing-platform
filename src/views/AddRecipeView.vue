@@ -48,19 +48,37 @@
                             </span>
                         </div>
 
-                        <!-- Image upload -->
-                        <div class="field">
-                            <label class="field-label">Image <span class="optional">(optional)</span></label>
-                            <div class="image-upload" @click="triggerFileInput" :class="{ 'has-preview': imagePreview }">
-                                <img v-if="imagePreview" :src="imagePreview" class="image-preview" alt="Preview" />
-                                <div v-else class="upload-placeholder">
-                                    <span class="upload-icon">🖼</span>
-                                    <span>Click to upload</span>
-                                    <span class="upload-hint">JPG, PNG or WebP · max 4MB</span>
+                        <!-- Image Upload Grid -->
+                        <div class="image-upload">
+                            <div class="image-upload__grid">
+                                <div
+                                    v-for="(img, index) in form.values.value.images"
+                                    :key="img.previewUrl"
+                                    class="image-upload__item"
+                                    :class="{ 'image-upload__item--primary': index === 0 }"
+                                    draggable="true"
+                                    @dragstart="onDragStart(index)"
+                                    @dragover.prevent
+                                    @drop="onDrop(index)"
+                                >
+                                    <img :src="img.previewUrl" :alt="`Image ${index + 1}`" />
+                                    <span v-if="index === 0" class="image-upload__primary-badge">Cover</span>
+                                    <button type="button" class="image-upload__remove" @click="removeImage(index)">✕</button>
                                 </div>
-                                <button v-if="imagePreview" type="button" class="remove-image" @click.stop="removeImage">✖</button>
+
+                                <label v-if="form.images.length < 5" class="image-upload__add">
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        multiple
+                                        @change="onFilesSelected"
+                                        hidden
+                                    />
+                                    <span>+</span>
+                                    <small>{{ form.images.length === 0 ? 'Add photos' : 'Add more' }}</small>
+                                </label>
                             </div>
-                            <input ref="fileInput" type="file" accept="image/jpeg,image/png,image/webp" class="hidden-input" @change="onFileChange" />
+                            <p class="image-upload__hint">First image is the cover. Drag to reorder.</p>
                         </div>
 
                         <!-- Visibility -->
@@ -324,6 +342,7 @@ const recipesStore  = useRecipesStore();
 const apiError      = ref(null);
 const auth          = useAuthStore();
 const showNutrition = ref(false);
+const dragIndex     = ref(null);
 
 // ── Paywall ───────────────────────────────────────────────────────────────────
 const { atFreeLimit, isPremium } = usePlan();
@@ -335,7 +354,7 @@ const form = useForm(
         description: '',
         category: '',
         difficulty: '',
-        image: null,
+        images: [],
         prep_time: '',
         cook_time: '',
         steps: [''],
@@ -382,55 +401,59 @@ function onStatusChange(value) {
     }
 }
 
-const fileInput    = ref(null);
-const imagePreview = ref(null);
-
-function triggerFileInput() { fileInput.value.click(); }
-
-function onFileChange(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    form.values.value.image = file;
-    imagePreview.value = URL.createObjectURL(file);
-}
-
-function removeImage() {
-    form.values.value.image = null;
-    imagePreview.value      = null;
-    fileInput.value.value   = '';
-}
-
 async function submit() {
-    // ── Free tier limit check ─────────────────────────────────────────────────
-    if (atFreeLimit.value) {
-        showPricing.value = true;
-        return;
-    }
-
+    if (atFreeLimit.value) { showPricing.value = true; return; }
     if (!form.validate()) return;
+
     apiError.value = null;
+
     try {
         const newRecipe = await recipesStore.createRecipe({
             ...form.values.value,
-            prep_time:        Number(form.values.value.prep_time),
-            cook_time:        Number(form.values.value.cook_time),
-            servings:         Number(form.values.value.servings) || 4,  
-            image:            form.values.value.image ?? null,
-            nutritional_info: JSON.stringify(form.values.value.nutritional_info),
-
+            prep_time: Number(form.values.value.prep_time),
+            cook_time: Number(form.values.value.cook_time),
+            servings:  Number(form.values.value.servings) || 4,
         });
 
         auth.incrementRecipeCount();
-
-        router.push({ name: 'recipe-detail', params: { id: newRecipe.id } });
-    } catch (err) {
+        router.push({ name: 'recipe-detail', params: { id: newRecipe.id } })
+    }
+    catch (err) {
         apiError.value = err.message;
     }
 }
 
-console.log(auth);
+function onFilesSelected(e) {
+    const files     = Array.from(e.target.files);
+    const remaining = 5 - form.values.value.images.length;
 
+    files.slice(0, remaining).forEach(file => {
+        form.values.value.images.push({
+            file,
+            previewUrl: URL.createObjectURL(file),
+        });
+    })
+
+    e.target.value = '';
+}
+
+function removeImage(index) {
+    form.values.value.images.splice(index, 1);
+}
+
+function onDragStart(index) { dragIndex.value = index; }
+
+function onDrop(index) {
+    if (dragIndex.value === null || dragIndex.value === index) return;
+
+    const imgs    = [...form.values.value.images];
+    const [moved] = imgs.splice(dragIndex.value, 1);
+
+    imgs.splice(index, 0, moved);
+
+    form.values.value.images = imgs;
+    dragIndex.value          = null;
+}
 </script>
 
 <style scoped>
@@ -782,6 +805,102 @@ console.log(auth);
   font-size: 0.9rem;
   background: #fff;
   box-sizing: border-box;
+}
+
+.image-upload__grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+}
+
+.image-upload__item {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 2px solid #c8b89a;
+    cursor: grab;
+}
+
+.image-upload__item--primary {
+    border-color: #c9a84c;
+    border-width: 2px;
+}
+
+.image-upload__item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.image-upload__primary-badge {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(201, 168, 76, 0.85);
+    color: #3b2a1a;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-align: center;
+    padding: 2px 0;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.image-upload__remove {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    background: rgba(0,0,0,0.5);
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    font-size: 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+.image-upload__add {
+    width: 100px;
+    height: 100px;
+    border: 2px dashed #c8b89a;
+    border-radius: 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #8a7560;
+    transition: background 0.2s;
+}
+
+.image-upload__add:hover {
+    background: #f5efe6;
+}
+
+.image-upload__add span {
+    font-size: 1.8rem;
+    line-height: 1;
+    color: #c8b89a;
+}
+
+.image-upload__add small {
+    font-size: 0.7rem;
+    margin-top: 0.25rem;
+}
+
+.image-upload__hint {
+    font-size: 0.78rem;
+    color: #8a7560;
+    font-style: italic;
 }
 
 /* ══ Mobile: unwrap book ══ */

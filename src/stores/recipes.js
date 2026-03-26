@@ -95,41 +95,79 @@ export const useRecipesStore = defineStore('recipes', () => {
         }
     }
 
+    function buildFormData(payload) {
+        const fd = new FormData();
+
+        Object.entries(payload).forEach(([key, val]) => {
+            if (val === null || val === undefined) return;
+
+            if (key === 'images') {
+                // array of { file, previewUrl } for new uploads
+                // or { id, path, order, is_primary } for existing
+                val.forEach((img, i) => {
+                    if (img.file instanceof File) {
+                        fd.append(`images[${i}][file]`, img.file);
+                    }
+                    else if (img.id) {
+                        fd.append(`images[${i}][id]`, img.id);
+                    }
+                });
+
+                return;
+            }
+
+            if (key === 'nutritional_info' && typeof val === 'object') {
+                Object.entries(val).forEach(([k, v]) => {
+                    if (v !== null && v !== undefined) {
+                        fd.append(`nutritional_info[${k}]`, v);
+                    }
+                });
+
+                return;
+            }
+
+            if (key === 'ingredients' && Array.isArray(val)) {
+                val.forEach((ing, i) => {
+                    fd.append(`ingredients[${i}][quantity]`, ing.quantity ?? '');
+                    fd.append(`ingredients[${i}][unit]`,     ing.unit     ?? '');
+                    fd.append(`ingredients[${i}][name]`,     ing.name     ?? '');
+                });
+
+                return;
+            }
+
+            if (key === 'steps' && Array.isArray(val)) {
+                val.forEach((step, i) => fd.append(`steps[${i}]`, step));
+
+                return;
+            }
+
+            fd.append(key, val);
+        });
+
+        return fd;
+    }
+
     async function createRecipe(payload) {
         isLoading.value = true;
         error.value     = null;
-        try {
-            // Build FormData so the image file is sent as multipart
-            const fd = new FormData();
-            Object.entries(payload).forEach(([key, val]) => {
-                if (key === 'image') {
-                    if (val) fd.append('image', val);
-                } else if (Array.isArray(val)) {
-                    val.forEach((item, i) => {
-                        if (typeof item === 'object') {
-                            Object.entries(item).forEach(([k, v]) => fd.append(`${key}[${i}][${k}]`, v));
-                        } else {
-                            fd.append(`${key}[${i}]`, item);
-                        }
-                    });
-                } else {
-                    fd.append(key, val);
-                }
-            });
 
+        try {
+            const fd        = buildFormData(payload);
             const data      = await recipesApi.store(fd);
             const newRecipe = data.data ?? data;
 
-            // Only add to public feed cache if published
             if (newRecipe.status === 'published') {
                 recipes.value.unshift(newRecipe);
             }
 
             return newRecipe;
-        } catch (err) {
+        }
+        catch (err) {
             error.value = err.message;
             throw err;
-        } finally {
+        }
+        finally {
             isLoading.value = false;
         }
     }
@@ -137,41 +175,30 @@ export const useRecipesStore = defineStore('recipes', () => {
     async function updateRecipe(id, payload) {
         isLoading.value = true;
         error.value     = null;
+
         try {
-            const fd = new FormData();
-            Object.entries(payload).forEach(([key, val]) => {
-                if (key === 'image') {
-                    if (val instanceof File) fd.append('image', val);
-                } else if (Array.isArray(val)) {
-                    val.forEach((item, i) => {
-                        if (typeof item === 'object') {
-                            Object.entries(item).forEach(([k, v]) => fd.append(`${key}[${i}][${k}]`, v));
-                        } else {
-                            fd.append(`${key}[${i}]`, item);
-                        }
-                    });
-                } else {
-                    fd.append(key, val);
-                }
-            });
+            const fd = buildFormData(payload);
+            fd.append('_method', 'PUT');
 
             const data    = await recipesApi.update(id, fd);
             const updated = data.data ?? data;
+            const idx     = recipes.value.findIndex(r => r.id === Number(id));
 
-            // Update in local cache
-            const idx = recipes.value.findIndex(r => r.id === Number(id));
             if (updated.status === 'published') {
                 if (idx !== -1) recipes.value[idx] = updated;
-                else recipes.value.unshift(updated); 
-            } else {
-                if (idx !== -1) recipes.value.splice(idx, 1); 
+                else recipes.value.unshift(updated);
+            }
+            else {
+                if (idx !== -1) recipes.value.splice(idx, 1);
             }
 
             return updated;
-        } catch (err) {
+        }
+        catch (err) {
             error.value = err.message;
             throw err;
-        } finally {
+        }
+        finally {
             isLoading.value = false;
         }
     }
