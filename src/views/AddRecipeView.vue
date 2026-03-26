@@ -74,13 +74,13 @@
                                 <label
                                     v-if="form.values.value.images.length < (isPremium ? 5 : 1)"
                                     class="image-upload__add"
-                                    @click.prevent="!isPremium && form.values.value.images.length >= 1 ? showPricing = true : null"
                                 >
                                     <input
                                         type="file"
                                         accept="image/*"
                                         multiple
                                         @change="onFilesSelected"
+                                        @click="!isPremium && form.values.value.images.length >= 1 ? ($event.preventDefault(), showPricing = true) : null"
                                         hidden
                                     />
                                     <span>+</span>
