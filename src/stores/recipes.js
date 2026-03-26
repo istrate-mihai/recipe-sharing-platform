@@ -178,7 +178,6 @@ export const useRecipesStore = defineStore('recipes', () => {
 
         try {
             const fd = buildFormData(payload);
-            fd.append('_method', 'PUT');
 
             const data    = await recipesApi.update(id, fd);
             const updated = data.data ?? data;
