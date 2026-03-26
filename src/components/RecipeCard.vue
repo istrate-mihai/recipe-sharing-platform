@@ -2,8 +2,8 @@
     <RouterLink class="book-recipe-card" :to="{ name: 'recipe-detail', params: { id: recipe.id } }">
         <div class="brc-image-wrap">
             <img
-                v-if="recipe.images[0].path"
-                :src="recipe.images[0].path"
+                v-if="recipe.images[0]?.url"
+                :src="recipe.images[0]?.url"
                 :alt="recipe.title"
                 class="brc-image"
                 :loading="priority ? 'eager' : 'lazy'"
@@ -50,8 +50,6 @@ const CATEGORY_ICONS = {
     vegetarian: '🥦', other: '🍽',
 };
 const categoryIcon = computed(() => CATEGORY_ICONS[props.recipe.category] ?? '🍽');
-
-console.log(props.recipe);
 </script>
 
 <style scoped>
