@@ -55,18 +55,27 @@
                                     v-for="(img, index) in form.values.value.images"
                                     :key="img.previewUrl"
                                     class="image-upload__item"
-                                    :class="{ 'image-upload__item--primary': index === 0 }"
                                     draggable="true"
                                     @dragstart="onDragStart(index)"
-                                    @dragover.prevent
+                                    @dragover.prevent="onDragOver(index)"
                                     @drop="onDrop(index)"
+                                    @dragend="dragIndex = null"
+                                    :class="{ 
+                                        'image-upload__item--primary': index === 0,
+                                        'image-upload__item--dragging': dragIndex === index,
+                                        'image-upload__item--dragover': dragOver === index,
+                                    }"
                                 >
                                     <img :src="img.previewUrl" :alt="`Image ${index + 1}`" />
                                     <span v-if="index === 0" class="image-upload__primary-badge">Cover</span>
                                     <button type="button" class="image-upload__remove" @click="removeImage(index)">✕</button>
                                 </div>
 
-                                <label v-if="form.values.value.images.length < 5" class="image-upload__add">
+                                <label
+                                    v-if="form.values.value.images.length < (isPremium ? 5 : 1)"
+                                    class="image-upload__add"
+                                    @click.prevent="!isPremium && form.values.value.images.length >= 1 ? showPricing = true : null"
+                                >
                                     <input
                                         type="file"
                                         accept="image/*"
@@ -343,6 +352,7 @@ const apiError      = ref(null);
 const auth          = useAuthStore();
 const showNutrition = ref(false);
 const dragIndex     = ref(null);
+const dragOver      = ref(null);
 
 // ── Paywall ───────────────────────────────────────────────────────────────────
 const { atFreeLimit, isPremium } = usePlan();
@@ -424,15 +434,22 @@ async function submit() {
 }
 
 function onFilesSelected(e) {
+    const maxImages = isPremium.value ? 5 : 1;
     const files     = Array.from(e.target.files);
-    const remaining = 5 - form.values.value.images.length;
+    const remaining = maxImages - form.values.value.images.length;
+
+    if (remaining <= 0) {
+        showPricing.value = true;
+        e.target.value = '';
+        return;
+    }
 
     files.slice(0, remaining).forEach(file => {
         form.values.value.images.push({
             file,
             previewUrl: URL.createObjectURL(file),
         });
-    })
+    });
 
     e.target.value = '';
 }
@@ -441,18 +458,27 @@ function removeImage(index) {
     form.values.value.images.splice(index, 1);
 }
 
-function onDragStart(index) { dragIndex.value = index; }
+function onDragStart(index) {
+    dragIndex.value = index;
+}
+
+function onDragOver(index) {
+    dragOver.value = index;
+}
 
 function onDrop(index) {
-    if (dragIndex.value === null || dragIndex.value === index) return;
+    if (dragIndex.value === null || dragIndex.value === index) {
+        dragOver.value = null;
+        return;
+    }
 
     const imgs    = [...form.values.value.images];
     const [moved] = imgs.splice(dragIndex.value, 1);
-
     imgs.splice(index, 0, moved);
 
     form.values.value.images = imgs;
     dragIndex.value          = null;
+    dragOver.value           = null;
 }
 </script>
 
@@ -901,6 +927,15 @@ function onDrop(index) {
     font-size: 0.78rem;
     color: #8a7560;
     font-style: italic;
+}
+
+.image-upload__item--dragging {
+    opacity: .4;
+    border: 2px dashed #c9a03d;
+}
+.image-upload__item--dragover {
+    border: 2px solid #c9a03d;
+    transform: scale(1.03);
 }
 
 /* ══ Mobile: unwrap book ══ */
