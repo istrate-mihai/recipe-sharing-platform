@@ -64,6 +64,19 @@ const routes = [
         component: () => import('../views/BillingSettings.vue'),
         meta: { requiresAuth: true },
     },
+    // ── Collections (Premium) ─────────────────────────────────────────────────
+    {
+        path: '/collections',
+        name: 'collections',
+        component: () => import('../views/CollectionsView.vue'),
+        meta: { requiresAuth: true }
+    },
+    {
+        path: '/collections/:id',
+        name: 'collection-detail',
+        component: () => import('../views/CollectionDetailView.vue'),
+        meta: { requiresAuth: true }
+    },
     // ─────────────────────────────────────────────────────────────────────────
     {
         path: '/:pathMatch(.*)*',

@@ -1,6 +1,7 @@
 import { ref, computed } from 'vue';
 import { defineStore } from 'pinia';
 import { authApi } from '../services/api';
+import { useCollectionsStore } from './useCollectionsStore';
 
 export const useAuthStore = defineStore('auth', () => {
 
@@ -41,9 +42,13 @@ export const useAuthStore = defineStore('auth', () => {
     }
 
     async function logout() {
+        const collectionsStore = useCollectionsStore();
+        collectionsStore.reset();
+
         try {
             await authApi.logout();
-        } finally {
+        }
+        finally {
             _clearSession();
         }
     }

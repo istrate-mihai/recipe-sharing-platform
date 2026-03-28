@@ -279,6 +279,14 @@
                                 @click="handleExportPdf"
                             >⬇ Recipe Card</button>
 
+                            <button
+                                v-if="isPremium"
+                                class="btn-save-collection"
+                                @click="showSaveModal = true"
+                            >
+                                ＋ Save
+                            </button>
+
                             <RouterLink
                                 v-if="recipe.is_owner"
                                 :to="{ name: 'edit-recipe', params: { id: recipe.id } }"
@@ -344,6 +352,14 @@
             />
 
             <PricingModal v-model="showPricing" />
+
+            <Teleport to="body">
+                <SaveToCollectionModal
+                    v-if="showSaveModal"
+                    :recipe-id="recipe.id"
+                    @close="showSaveModal = false"
+                />
+            </Teleport>
         </article>
     </div>
 </template>
@@ -358,6 +374,7 @@ import { useTimeAgo } from '../composables/useTimeAgo';
 import { usePlan } from '../composables/usePlan';
 import ConfirmModal from '../components/ConfirmModal.vue';
 import PricingModal from '../components/PricingModal.vue';
+import SaveToCollectionModal from '../components/SaveToCollectionModal.vue';
 
 const route         = useRoute();
 const router        = useRouter();
@@ -371,6 +388,7 @@ const isLoading       = ref(true);
 const imageModalOpen  = ref(false);
 const currentServings = ref(4);
 const showPricing     = ref(false);
+const showSaveModal   = ref(false);
 const lightboxIndex   = ref(0);
 
 onMounted(async () => {
@@ -1398,5 +1416,19 @@ async function handleExportPdf() {
 
 .nutrition-card__cta:hover {
   background: #3b2a1a;
+}
+
+.btn-save-collection {
+    background: #5c3d1e;
+    color: #fbe9c3;
+    border-color: #3b2a1a;
+    font-size: .82rem;
+    padding: .45rem 1rem;
+    box-shadow: 0 4px 0 #2c1a0a;
+}
+
+.btn-save-collection:hover {
+    background: #3b2a1a;
+    box-shadow: 0 2px 0 #2c1a0a;
 }
 </style>

@@ -26,12 +26,12 @@ async function request(endpoint, options = {}) {
         headers,
     });
 
-    const data = await res.json();
+    const data = res.status === 204 ? null : await res.json();
 
     if (!res.ok) {
-        const message = data.message || data.errors
-            ? (Object.values(data.errors || {})[0]?.[0] ?? data.message)
-            : 'An error occurred.';
+        const message = data.errors
+            ? Object.values(data.errors)[0]?.[0]
+            : data.message ?? data.error ?? 'An error occurred.';
         throw new Error(message);
     }
 
@@ -74,4 +74,15 @@ export const profileApi = {
 // ── My Recipes (owner — includes drafts & private) ────────────────────────
 export const myRecipesApi = {
     index: () => request('/my-recipes'),
+};
+
+// ── Collections ───────────────────────────────────────────────────────────
+export const collectionsApi = {
+    index:        ()                    => request('/collections'),
+    show:         (id)                  => request(`/collections/${id}`),
+    store:        (payload)             => request('/collections',         { method: 'POST',   body: JSON.stringify(payload) }),
+    update:       (id, payload)         => request(`/collections/${id}`,   { method: 'PUT',    body: JSON.stringify(payload) }),
+    destroy:      (id)                  => request(`/collections/${id}`,   { method: 'DELETE' }),
+    addRecipe:    (id, recipeId)        => request(`/collections/${id}/recipes`, { method: 'POST', body: JSON.stringify({ recipe_id: recipeId }) }),
+    removeRecipe: (id, recipeId)        => request(`/collections/${id}/recipes/${recipeId}`, { method: 'DELETE' }),
 };

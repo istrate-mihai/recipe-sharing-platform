@@ -6,6 +6,7 @@
 
         <template v-if="auth.isLoggedIn">
             <RouterLink to="/add-recipe">Add Recipe</RouterLink>
+            <RouterLink v-if="isPremium" to="/collections" class="nav-link">📚 Collections</RouterLink>
             <RouterLink to="/profile">Profile</RouterLink>
 
             <RouterLink to="/settings/billing" class="nav-billing" :title="isPremium ? 'Premium account' : 'Upgrade to Premium'">
@@ -25,8 +26,8 @@ import { useRouter } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
 import { usePlan } from '../composables/usePlan';
 
-const router = useRouter();
-const auth   = useAuthStore();
+const router        = useRouter();
+const auth          = useAuthStore();
 const { isPremium } = usePlan();
 
 function handleLogout() {
