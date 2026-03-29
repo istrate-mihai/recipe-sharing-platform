@@ -54,7 +54,8 @@ const { startCheckout } = usePlan();
 
 const PRICE_IDS = {
     year:  'price_1TGKMNKTCGC51QifvxW9XU63',
-    month: 'price_1TGKKfKTCGC51QifQpO5fRJu',
+    // month: 'price_1TGKKfKTCGC51QifQpO5fRJu',
+    month: 'price_1TGMvxKTCGC51Qif400yNS9e',
 };
 
 const interval = ref('year');
