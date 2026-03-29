@@ -14,12 +14,13 @@
             <template v-if="auth.isLoggedIn">
                 <a @click.prevent="closeAndNavigate('/add-recipe')">Add Recipe</a>
                 <a v-if="isPremium" @click.prevent="closeAndNavigate('/collections')">📚 Collections</a>
+                <a @click.prevent="closeAndNavigate('/profile')">Profile</a>
 
                 <a @click.prevent="closeAndNavigate('/settings/billing')"
-                   class="nav-billing"
-                   :title="isPremium ? 'Premium account' : 'Upgrade to Premium'">
+                class="nav-billing"
+                :title="isPremium ? 'Premium account' : 'Upgrade to Premium'">
                     <span class="nav-avatar">{{ auth.user.avatar }}</span>
-                    <span class="nav-billing-label">Profile</span>
+                    <span class="nav-billing-label">Billing</span>
                     <span v-if="isPremium" class="premium-crown">★</span>
                 </a>
 
