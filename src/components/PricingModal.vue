@@ -53,8 +53,10 @@ defineEmits(['update:modelValue']);
 const { startCheckout } = usePlan();
 
 const PRICE_IDS = {
-    month: 'price_1TE26FKTCGC51Qif0g9kuqCf',
-    year:  'price_1TE26FKTCGC51QifgLJnyQV3',
+    // month: 'price_1TE26FKTCGC51Qif0g9kuqCf',
+    // year:  'price_1TE26FKTCGC51QifgLJnyQV3',
+    month: 'prod_UEo0TCK38VYRly',
+    year:  'prod_UEoMGmwCGtsphZ',
 };
 
 const interval = ref('year');
