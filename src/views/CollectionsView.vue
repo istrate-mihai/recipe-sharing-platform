@@ -38,10 +38,12 @@
                         <img
                             v-for="recipe in (col.recipes ?? []).slice(0, 4)"
                             :key="recipe.id"
-                            :src="recipe.primary_image ?? '/placeholder.jpg'"
+                            :src="recipe.images?.[0]?.url ?? null"
                             class="thumb"
                             alt=""
+                            @error="e => e.target.style.display = 'none'"
                         />
+
                         <div
                             v-if="(col.recipe_count ?? 0) === 0"
                             class="thumb thumb--empty"
@@ -97,7 +99,7 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue';
+import { ref } from 'vue';
 import { useCollections } from '../composables/useCollections';
 import { usePlan } from '../composables/usePlan';
 import CollectionFormModal from '../components/CollectionFormModal.vue';

@@ -687,39 +687,6 @@ input::placeholder, textarea::placeholder {
     padding: 0.75rem;
   }
 
-  /* ── Navbar ── */
-  .navbar {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.6rem;
-    padding: 0.85rem 1.2rem;
-    border-radius: 24px 24px 16px 16px;
-    margin-bottom: 1.8rem;    /* more space between nav and hero title */
-  }
-
-  .navbar .brand {
-    font-size: 1.2rem;
-    padding: 0.2rem 0.6rem;
-  }
-
-  .nav-links {
-    width: 100%;
-    gap: 0;
-    justify-content: space-between;
-  }
-
-  .nav-links a,
-  .nav-links button {
-    font-size: 0.95rem;
-    padding: 0.4rem 0.7rem;
-  }
-
-  /* hide the ⋮ dividers on mobile — too cramped */
-  .nav-links a:not(:last-child)::after,
-  .nav-links button:not(:last-child)::after {
-    display: none;
-  }
-
   /* ── Hero text ── */
   h1 {
     font-size: 2.2rem;
