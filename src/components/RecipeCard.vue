@@ -1,5 +1,9 @@
 <template>
-    <RouterLink class="book-recipe-card" :to="{ name: 'recipe-detail', params: { id: recipe.id } }">
+    <RouterLink
+        class="book-recipe-card"
+        :class="{ 'is-new': isNew }"
+        :to="{ name: 'recipe-detail', params: { id: recipe.id } }"
+    >
         <div class="brc-image-wrap">
             <img
                 v-if="recipe.images[0]?.url"
@@ -39,7 +43,8 @@ import { useTimeAgo } from '../composables/useTimeAgo';
 
 const props = defineProps({
     recipe:   { type: Object,  required: true },
-    priority: { type: Boolean, default: false }, // true for first visible card (LCP)
+    priority: { type: Boolean, default: false },
+    isNew:    { type: Boolean, default: false }, // true = animate in
 });
 
 const timeAgo = useTimeAgo(computed(() => props.recipe.created_at));
@@ -172,6 +177,22 @@ const categoryIcon = computed(() => CATEGORY_ICONS[props.recipe.category] ?? '�
     letter-spacing: .05em;
 }
 .brc-likes { color: #b86b3f; font-size: .75rem; }
+
+/* ── Load More entrance animation ── */
+.book-recipe-card.is-new {
+    animation: cardRise .45s cubic-bezier(.22, 1, .36, 1) both;
+}
+
+@keyframes cardRise {
+    from {
+        opacity: 0;
+        transform: translateY(22px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
 
 /* Mobile: vertical stack */
 @media (max-width: 680px) {
