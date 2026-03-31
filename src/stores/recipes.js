@@ -20,31 +20,30 @@ export const useRecipesStore = defineStore('recipes', () => {
     const total         = ref(0);
     const perPage       = ref(10);
 
-    // Getters
+    // Server already filters by category + search.
+    // filtered just sorts — no client-side filtering needed.
     const filtered = computed(() => {
-        const q = search.value.toLowerCase();
-        return recipes.value
-            .filter(r => !q || (r.title ?? '').toLowerCase().includes(q) || (r.description ?? '').toLowerCase().includes(q))
-            .filter(r => !activeTag.value || r.category === activeTag.value)
-            .sort((a, b) => {
-                // created_at may be a Laravel timestamp object { date: '...' } or an ISO string
-                const dateA = new Date(a.created_at?.date ?? a.created_at);
-                const dateB = new Date(b.created_at?.date ?? b.created_at);
-                return dateB - dateA;
-            });
+        return [...recipes.value].sort((a, b) => {
+            const dateA = new Date(a.created_at?.date ?? a.created_at);
+            const dateB = new Date(b.created_at?.date ?? b.created_at);
+            return dateB - dateA;
+        });
     });
 
     const hasMorePages = computed(() => currentPage.value < lastPage.value);
 
-    /**
-     * Fetch page 1 fresh (replaces current recipes).
-     * Called on mount and when filters/search change.
-     */
+    function buildParams(page) {
+        const params = { page, per_page: perPage.value };
+        if (activeTag.value) params.category = activeTag.value;
+        if (search.value)    params.search   = search.value;
+        return params;
+    }
+
     async function fetchRecipes(page = 1) {
         isLoading.value = true;
         error.value     = null;
         try {
-            const data = await recipesApi.index({ page, per_page: perPage.value });
+            const data = await recipesApi.index(buildParams(page));
             recipes.value     = data.data ?? data;
             currentPage.value = data.meta?.current_page ?? page;
             lastPage.value    = data.meta?.last_page    ?? 1;
@@ -57,17 +56,13 @@ export const useRecipesStore = defineStore('recipes', () => {
         }
     }
 
-    /**
-     * Fetch the next API page and APPEND results to the existing list.
-     * Called by HomeView when the user turns toward the last loaded spread.
-     */
     async function fetchNextPage() {
         if (isLoading.value || !hasMorePages.value) return;
         isLoading.value = true;
         error.value     = null;
         try {
-            const nextPage = currentPage.value + 1;
-            const data = await recipesApi.index({ page: nextPage, per_page: perPage.value });
+            const nextPage    = currentPage.value + 1;
+            const data        = await recipesApi.index(buildParams(nextPage));
             const newRecipes  = data.data ?? data;
             const existingIds = new Set(recipes.value.map(r => r.id));
             const unique      = newRecipes.filter(r => !existingIds.has(r.id));
@@ -82,11 +77,9 @@ export const useRecipesStore = defineStore('recipes', () => {
         }
     }
 
-    // Get a single recipe — tries local cache first, then fetches from API
     async function getById(id) {
         const local = recipes.value.find(r => r.id === Number(id));
         if (local) return local;
-
         try {
             const data = await recipesApi.show(id);
             return data.data ?? data;
@@ -97,77 +90,51 @@ export const useRecipesStore = defineStore('recipes', () => {
 
     function buildFormData(payload) {
         const fd = new FormData();
-
         Object.entries(payload).forEach(([key, val]) => {
             if (val === null || val === undefined) return;
-
             if (key === 'images') {
-                // array of { file, previewUrl } for new uploads
-                // or { id, path, order, is_primary } for existing
                 val.forEach((img, i) => {
-                    if (img.file instanceof File) {
-                        fd.append(`images[${i}][file]`, img.file);
-                    }
-                    else if (img.id) {
-                        fd.append(`images[${i}][id]`, img.id);
-                    }
+                    if (img.file instanceof File) fd.append(`images[${i}][file]`, img.file);
+                    else if (img.id)              fd.append(`images[${i}][id]`, img.id);
                 });
-
                 return;
             }
-
             if (key === 'nutritional_info' && typeof val === 'object') {
                 Object.entries(val).forEach(([k, v]) => {
-                    if (v !== null && v !== undefined) {
-                        fd.append(`nutritional_info[${k}]`, v);
-                    }
+                    if (v !== null && v !== undefined) fd.append(`nutritional_info[${k}]`, v);
                 });
-
                 return;
             }
-
             if (key === 'ingredients' && Array.isArray(val)) {
                 val.forEach((ing, i) => {
                     fd.append(`ingredients[${i}][quantity]`, ing.quantity ?? '');
                     fd.append(`ingredients[${i}][unit]`,     ing.unit     ?? '');
                     fd.append(`ingredients[${i}][name]`,     ing.name     ?? '');
                 });
-
                 return;
             }
-
             if (key === 'steps' && Array.isArray(val)) {
                 val.forEach((step, i) => fd.append(`steps[${i}]`, step));
-
                 return;
             }
-
             fd.append(key, val);
         });
-
         return fd;
     }
 
     async function createRecipe(payload) {
         isLoading.value = true;
         error.value     = null;
-
         try {
             const fd        = buildFormData(payload);
             const data      = await recipesApi.store(fd);
             const newRecipe = data.data ?? data;
-
-            if (newRecipe.status === 'published') {
-                recipes.value.unshift(newRecipe);
-            }
-
+            if (newRecipe.status === 'published') recipes.value.unshift(newRecipe);
             return newRecipe;
-        }
-        catch (err) {
+        } catch (err) {
             error.value = err.message;
             throw err;
-        }
-        finally {
+        } finally {
             isLoading.value = false;
         }
     }
@@ -175,29 +142,22 @@ export const useRecipesStore = defineStore('recipes', () => {
     async function updateRecipe(id, payload) {
         isLoading.value = true;
         error.value     = null;
-
         try {
-            const fd = buildFormData(payload);
-
+            const fd      = buildFormData(payload);
             const data    = await recipesApi.update(id, fd);
             const updated = data.data ?? data;
             const idx     = recipes.value.findIndex(r => r.id === Number(id));
-
             if (updated.status === 'published') {
                 if (idx !== -1) recipes.value[idx] = updated;
-                else recipes.value.unshift(updated);
-            }
-            else {
+                else            recipes.value.unshift(updated);
+            } else {
                 if (idx !== -1) recipes.value.splice(idx, 1);
             }
-
             return updated;
-        }
-        catch (err) {
+        } catch (err) {
             error.value = err.message;
             throw err;
-        }
-        finally {
+        } finally {
             isLoading.value = false;
         }
     }
@@ -211,7 +171,6 @@ export const useRecipesStore = defineStore('recipes', () => {
         const data   = await recipesApi.like(id);
         const recipe = recipes.value.find(r => r.id === Number(id));
         if (recipe) {
-            // API returns the updated likes_count and is_liked flag
             recipe.likes_count = data.likes_count;
             recipe.is_liked    = data.liked;
         }
@@ -221,9 +180,7 @@ export const useRecipesStore = defineStore('recipes', () => {
     async function favouriteRecipe(id) {
         const data   = await recipesApi.favourite(id);
         const recipe = recipes.value.find(r => r.id === Number(id));
-        if (recipe) {
-            recipe.is_favourited = data.favourited;
-        }
+        if (recipe) recipe.is_favourited = data.favourited;
         return data;
     }
 
