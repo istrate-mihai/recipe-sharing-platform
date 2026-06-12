@@ -73,7 +73,7 @@ export const profileApi = {
 
 // ── My Recipes (owner — includes drafts & private) ────────────────────────
 export const myRecipesApi = {
-    index: () => request('/my-recipes'),
+    index: () => request('/recipes/my-recipes'),
 };
 
 // ── Collections ───────────────────────────────────────────────────────────
